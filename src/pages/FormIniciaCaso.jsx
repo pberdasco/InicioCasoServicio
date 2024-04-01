@@ -50,7 +50,12 @@ export const FormIniciaCaso = () => {
                 
                 Le solicitamos, para continuar con el proceso, que complete el formulario de reclamo haciendo click en el siguiente link:
                 
-                http://localhost:5173/inicio/${result.tokenLink}`,
+                http://localhost:5173/${result.tokenLink}`,
+                html: `<p>Estimado ${result.cliente.nombre} ${result.cliente.apellido},</p>
+           <p>A su solicitud, hemos iniciado el caso número: <strong><span style="color:blue;">${result.idCRM}</span></strong> para proceder al tratamiento de la garantía de nuestro producto</p>
+           <p>Le solicitamos, para continuar con el proceso, que complete el formulario de reclamo haciendo click en el siguiente link:</p>
+           <p><a href="http://localhost:5173/${result.tokenLink}" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none;">Completar formulario de reclamo</a></p>`,
+
             }
             Mail.send(datosMail);
         }

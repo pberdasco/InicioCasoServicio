@@ -12,6 +12,7 @@ export class Mail {
                 to: datosMail.to,
                 subject: datosMail.subject,
                 text: datosMail.text,
+                html: datosMail.html
             }),
         });
         
