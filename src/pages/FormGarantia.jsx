@@ -38,7 +38,7 @@ export const FormGarantia = () => {
             try {
                 const casoData = await Caso.GetByToken(token);
                 // Inicializar el formulario aquí después de obtener los datos del caso
-                setValue("nroCaso", casoData.id || 0);
+                setValue("nroCaso", casoData.idCRM || 0);
                 setValue("fInicio", formatDate(dayjs()));
                 setValue("mail", casoData.cliente.mail);
                 setValue("nombre", casoData.cliente.nombre);
