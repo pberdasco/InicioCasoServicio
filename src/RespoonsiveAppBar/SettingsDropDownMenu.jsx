@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState } from "react"; 
+import { Link } from "react-router-dom";
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
@@ -10,22 +11,14 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
 
-export function SettingsDropDownMenu({settings, handleCloseMenu}) {
+export function SettingsDropDownMenu({settings}) {
 
     const [anchorElUser, setAnchorElUser] = useState(null);
-    const handleOpenUserMenu = (event) => {
-        setAnchorElUser(event.currentTarget);
-    };
-
-    const handleCloseUserMenu = (route) => {
-        setAnchorElUser(null);
-        handleCloseMenu(route)
-      };
     
     return(  
         <Box sx={{ flexGrow: 0, ml: 1}}>
             <Tooltip title="Settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <IconButton onClick={(event) => setAnchorElUser(event.currentTarget)} sx={{ p: 0 }}>
                     <ManageAccountsIcon sx={{ color: 'white' }}/>
                 </IconButton>
             </Tooltip>
@@ -37,11 +30,13 @@ export function SettingsDropDownMenu({settings, handleCloseMenu}) {
                 keepMounted
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
                 open={Boolean(anchorElUser)}
-                onClose={() =>  handleCloseUserMenu(null)}
+                onClose={() =>  setAnchorElUser(null)}
             >
                 {settings.map((setting) => (
-                <MenuItem key={setting.title} onClick={() => handleCloseUserMenu(setting.route)}>
-                    <Typography textAlign="center">{setting.title}</Typography>
+                <MenuItem key={setting.title} onClick={() => setAnchorElUser(null)}>
+                    <Link to={setting.route} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Typography textAlign="center">{setting.title}</Typography>
+                    </Link>
                 </MenuItem>
                 ))}
             </Menu>
@@ -51,5 +46,4 @@ export function SettingsDropDownMenu({settings, handleCloseMenu}) {
 
 SettingsDropDownMenu.propTypes = {
     settings: PropTypes.array.isRequired,
-    handleCloseMenu: PropTypes.func.isRequired
-  }
+}

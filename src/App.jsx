@@ -30,9 +30,9 @@ function App() {
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <SetUser/>
-          <ResponsiveAppBar/> 
             <BrowserRouter>
+              <SetUser/>
+              <ResponsiveAppBar/> {/* dentro del BrowserRouter porque en el componente usa <Link> que necesita un estado del contexto que crea BrowserRouter*/}
               <Routes>
                 <Route path= "/" element={<InvalidLinkPage/>} errorElement= {<ErrorPage/>} /> 
                 <Route path= "/:token" element={<FormGarantia />} errorElement= {<ErrorPage/>} />
