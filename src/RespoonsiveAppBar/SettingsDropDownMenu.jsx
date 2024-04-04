@@ -1,5 +1,6 @@
-import PropTypes from 'prop-types';
-import { useState } from "react"; 
+import { useState, useEffect } from "react"; 
+import { useNavigate } from 'react-router-dom';
+import { useGeneralContext } from '../Context/GeneralContextHook';
 import { Link } from "react-router-dom";
 
 import Box from '@mui/material/Box';
@@ -11,10 +12,27 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
 
-export function SettingsDropDownMenu({settings}) {
+export function SettingsDropDownMenu() {
 
     const [anchorElUser, setAnchorElUser] = useState(null);
+    const navigate = useNavigate();
     
+    const {loggedUser, setloggedUser } = useGeneralContext();
+    const [settings, setSettings] = useState([{title: 'Login', route: "/login"}, {title: 'Cuentas', route: '/account'}]);
+
+    useEffect(() => {
+      if (!loggedUser) {setSettings([{title: 'Login', route: "/login"}, {title: 'Cuentas', route: '/account'}])}
+      else {setSettings([{title: 'Logout', route: "/login"}, {title: 'Cuentas', route: '/account'}])}
+    },
+    [loggedUser]);
+
+    const handleLogout = () => {
+        window.localStorage.removeItem("loggedUser");
+        setloggedUser(null);
+        setAnchorElUser(null);
+        navigate("/login");   
+    }
+
     return(  
         <Box sx={{ flexGrow: 0, ml: 1}}>
             <Tooltip title="Settings">
@@ -33,7 +51,7 @@ export function SettingsDropDownMenu({settings}) {
                 onClose={() =>  setAnchorElUser(null)}
             >
                 {settings.map((setting) => (
-                <MenuItem key={setting.title} onClick={() => setAnchorElUser(null)}>
+                <MenuItem key={setting.title} onClick={setting.title === 'Logout' ? handleLogout : () => setAnchorElUser(null)}>
                     <Link to={setting.route} style={{ textDecoration: 'none', color: 'inherit' }}>
                         <Typography textAlign="center">{setting.title}</Typography>
                     </Link>
@@ -44,6 +62,3 @@ export function SettingsDropDownMenu({settings}) {
     )
 }
 
-SettingsDropDownMenu.propTypes = {
-    settings: PropTypes.array.isRequired,
-}

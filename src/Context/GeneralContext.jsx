@@ -12,7 +12,6 @@ export const GeneralContextProvider = ({children}) => {
             {children}
         </Context.Provider>
     )
-
 }
 
 GeneralContextProvider.propTypes = {
