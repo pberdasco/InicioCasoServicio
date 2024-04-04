@@ -8,17 +8,18 @@ import 'dayjs/locale/es'
 
 // Pantallas de la aplicacion de demostración
 import { FormGarantia } from "./pages/FormGarantia";
-// import { FormTextInput } from './pages/FormTextInput';
+import { FormIniciaCaso } from './pages/FormIniciaCaso';
 import { FormLogin } from './pages/FormLogin';
 import { ResponsiveAppBar } from './RespoonsiveAppBar/ResponsiveAppBar';
+import { InvalidLinkPage } from './pages/FormInvalidLink';
 import ErrorPage from './pages/Complements/error-page';
 
 // Router
 import { BrowserRouter, Routes, Route} from 'react-router-dom';
 import { FormRedirect } from './pages/Complements/FormRedirect';
 import { GeneralContextProvider } from './Context/GeneralContext';
-import { FormIniciaCaso } from './pages/FormIniciaCaso';
 import { SetUser } from './pages/Complements/SetUser';
+
 
 const theme = createTheme({});
 
@@ -33,7 +34,7 @@ function App() {
           <ResponsiveAppBar/> 
             <BrowserRouter>
               <Routes>
-                <Route path= "/" element={<FormGarantia />} errorElement= {<ErrorPage/>} /> 
+                <Route path= "/" element={<InvalidLinkPage/>} errorElement= {<ErrorPage/>} /> 
                 <Route path= "/:token" element={<FormGarantia />} errorElement= {<ErrorPage/>} />
                 <Route path= "/inicio" element={<FormRedirect form={<FormIniciaCaso/>} from="/inicio"/>} errorElement= {<ErrorPage/>} />
                 {/* <Route path= "/text" element={<FormRedirect form={<FormTextInput/>} from="test"/>} errorElement= {<ErrorPage/>} />            */}
