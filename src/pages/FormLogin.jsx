@@ -1,5 +1,5 @@
 // De React y React-hook-form
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Auth } from "../apiAccess/loginApi";
@@ -49,12 +49,6 @@ export const FormLogin = () => {
 
     // Si vino ruteado por politica de privacidad de algun form se prepara para volver a el
     const location = useLocation();
-    let fromRef = useRef();
-    useEffect(() => {
-        fromRef.current = location.state?.from.from || "/"; 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    //console.log("Login va a volver a:", fromRef.current); 
     const navigate = useNavigate();
 
 
@@ -74,7 +68,7 @@ export const FormLogin = () => {
             setSubmit(1);
             console.log('<FormLogin> Login satisfactorio: ', logged.user);
         }      
-        navigate(fromRef.current); // Redirect to the original route 
+        navigate(location.state?.from.from || "/"); // Vuelve al form desde el que se redirecciono. (Ver que hacer si no se logea) 
     }
 
     return (
