@@ -32,6 +32,7 @@ import { DevTool } from "@hookform/devtools"
 export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
     const {token} = useParams();
+    const casoIds = {id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0};
 
     useEffect(() => {
         async function fetchData() {
@@ -43,6 +44,10 @@ export const FormGarantia = () => {
                 setValue("mail", casoData.cliente.mail);
                 setValue("nombre", casoData.cliente.nombre);
                 setValue("apellido", casoData.cliente.apellido);
+                casoIds.id = casoData.id;
+                casoIds.clienteId = casoData.cliente.id;
+                casoIds.tokenLink = token;
+                casoIds.statusDatosID = casoData.statusDatosID;
             } catch (error) {
                 console.error("Error al obtener el caso:", error);
             }
@@ -72,14 +77,21 @@ export const FormGarantia = () => {
         field: "hiddenFotoProducto"
     }
 
-    const [submit, setSubmit] = useState(false);
+    const [submit, setSubmit] = useState(0); // 0=no submit, 1=submit ok, -1=submit error
     const [submitData, setSubmitData] = useState("")
     const onSubmit = (data) => {
             // const output = {...data, fileNameImagenFactura: fileImagenFactura}
             //data.imagenFactura = fileImagenFactura; // traigo el archivo que no se pudo setear en el control
-            setSubmitData(JSON.stringify(data))
-            setSubmit(true);
-            console.log(JSON.stringify(data));
+            const casoGrabado = Caso.Update(casoIds, data);
+            if (casoGrabado.status){
+                setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
+                setSubmit(-1);
+            }else{
+                setSubmitData(`Caso ${data.nroCaso} enviado con exito`);
+                setSubmit(1);
+                // enviar mail
+            }
+            
     };
 
 
@@ -138,10 +150,10 @@ export const FormGarantia = () => {
                         <StdSubmitButton label="Enviar" size="s"/>
                     </Box>
                 </form>
-                {submit && ( <StdSnackAlert  open={submit} 
+                {(submit != 0) && ( <StdSnackAlert  open={submit} 
                                             close= {() => setSubmit(false)}
                                             text= {submitData}
-                                            severity="success"/>)}
+                                            severity={submit === 1 ? "success" : "error"}/>)}
 
                 <DevTool control={control} />
             </Box>

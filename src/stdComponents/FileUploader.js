@@ -1,5 +1,5 @@
-const uploadFileService = "http://192.168.78.103:5001/upload/file";
-const uploadBase64Service = 'http://192.168.78.103:5001/upload/base64';
+const uploadFileService = "http://192.168.78.103:5002/upload/file";
+const uploadBase64Service = 'http://192.168.78.103:5002/upload/base64';
 
 export function useFileUploader() {
     const uploadFile = async (file, directory="") => {
