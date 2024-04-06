@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // De React y React-hook-form
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -26,7 +28,6 @@ import { Provincia } from "../apiAccess/provinciaApi";
 
 // Herramienta desarrollo / test
 import { DevTool } from "@hookform/devtools"
-
 
 export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
@@ -70,16 +71,6 @@ export const FormGarantia = () => {
         formState: { errors },
     } = useForm();
 
-    const storageFact = {
-        setFunc: setValue,
-        field: "hiddenFotoFactura"
-    }
-
-    const storageProd = {
-        setFunc: setValue,
-        field: "hiddenFotoProducto"
-    }
-
     const onSubmit = async (data) => {
             const casoGrabado = await Caso.Update(casoIds, data);
             console.log("casoGrabado: ", casoGrabado);
@@ -100,14 +91,7 @@ export const FormGarantia = () => {
                                 token= {token}  casoIdCRM= {casoIds.id}/>
         ) : (
             <Container maxWidth={false} component="main" disableGutters>
-            <Box
-                component="section"
-                id="FormService"
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                paddingY="8px"
-            >
+            <Box component="section" id="FormService" display="flex" justifyContent="center" alignItems="center" paddingY="8px">
                 <form onSubmit={handleSubmit(onSubmit)} style={{width: formWidth}}>
                     <Box>
                         <h1>Formulario de Reclamo de Garantías</h1>
@@ -117,37 +101,11 @@ export const FormGarantia = () => {
                             <StdTextInput label="Nro Caso" name="nroCaso" control={control} errors={errors} size='s' readOnly/>
                             <StdTextInput label="Fecha Inicio" name="fInicio" control={control} errors={errors} size='s' readOnly/>
                         </Grid>
-                        <StdBlock formWidth={formWidth} title="Contacto">
-                            <StdTextInput label="e-Mail" name="mail" control={control} errors={errors} readOnly/>
-                            <StdTextInput label="Nombre" name="nombre" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su nombre"/>
-                            <StdTextInput label="Apellido" name="apellido" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su apellido"/>
-                            <StdTextInput label="Teléfono" name="telefono" control={control} errors={errors} toolTip="Ingrese (nnn) nnnn-nnnn"
-                                            validationRules={{ required: requiredMsg, pattern: {value: /^(?:\+\d{1,3}\s?)?(?:[()\s-]*\d){7,}$/,
-                                            message: "El teléfono no es válido. Ingrese (nnn) nnnn-nnnn"} }} focus/>
-                            <StdTextInput label="DNI" name="dni" control={control} errors={errors} validationRules={{required: requiredMsg}} />
-                        </StdBlock>
-                        <StdBlock formWidth={formWidth} title="Dirección">
-                            <StdTextInput label="Calle y número" name="calle" control={control} errors={errors} toolTip="Ingrese el domicilio de entrega" 
-                                            helperText="Ingresar calle, numero (mas piso y dpto de corresponder)" validationRules={{required: requiredMsg}} size="l"/>    
-                            <StdAutoComplete label="Provincia" name="provincia" control={control} optionsArray={provincias} optionLabel="name" valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
-                            <StdTextInput label="Localidad" name="localidad" control={control} errors={errors} validationRules={{required: requiredMsg}}/>
-                            <StdTextInput label="Codigo Postal" name="codPostal" control={control} errors={errors} validationRules={{required: requiredMsg}}/>           
-                        </StdBlock>
-                        <StdBlock formWidth={formWidth} title="Producto">
-                            
-                            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="name"
-                                         valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
-                            <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>}/>   {/* TODO: obligar segun producto */}
-                            <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} storage={storageFact} />
-                            <input type="hidden" {...register('hiddenFotoFactura')} />
-                            
-                            <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} storage={storageProd} />
-                            <input type="hidden" {...register('hiddenFotoProducto')} />
 
-                            <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} />
-                            <StdTextInput label="Número factura de compra" name="nroFacturaCompra" control={control} validationRules={{required: requiredMsg}} errors={errors}  helperText="Ingresar en formato FC 0000-00000000"/>
-                            <StdTextInput label="Descripción de la Falla" name="falla" control={control} validationRules={{required: requiredMsg}} errors={errors} size='l' toolTip="Indicar de la forma mas detallada posible"/>
-                        </StdBlock>
+                        <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth}/>
+                        <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias}/>
+                        <ProductBlock control={control} errors={errors} register={register} setValue={setValue} requiredMsg={requiredMsg} formWidth={formWidth} productos={productos}/>
+
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
                         <StdSubmitButton label="Enviar" size="s"/>
                     </Box>
@@ -168,7 +126,82 @@ export const FormGarantia = () => {
     );
 };
 
+const ContactBlock = ({ control, errors, requiredMsg, formWidth}) => {
+    return (
+        <StdBlock formWidth={formWidth} title="Contacto">
+            <StdTextInput label="e-Mail" name="mail" control={control} errors={errors} readOnly/>
+            <StdTextInput label="Nombre" name="nombre" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su nombre"/>
+            <StdTextInput label="Apellido" name="apellido" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su apellido"/>
+            <StdTextInput label="Teléfono" name="telefono" control={control} errors={errors} toolTip="Ingrese (nnn) nnnn-nnnn"
+                            validationRules={{ required: requiredMsg, pattern: {value: /^(?:\+\d{1,3}\s?)?(?:[()\s-]*\d){7,}$/,
+                            message: "El teléfono no es válido. Ingrese (nnn) nnnn-nnnn"} }} focus/>
+            <StdTextInput label="DNI" name="dni" control={control} errors={errors} validationRules={{required: requiredMsg}} />
+        </StdBlock>
+    )
+}
+
+const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias}) => {
+    return (
+        <StdBlock formWidth={formWidth} title="Dirección">
+            <StdTextInput label="Calle y número" name="calle" control={control} errors={errors} toolTip="Ingrese el domicilio de entrega" 
+                            helperText="Ingresar calle, numero (mas piso y dpto de corresponder)" validationRules={{required: requiredMsg}} size="l"/>    
+            <StdAutoComplete label="Provincia" name="provincia" control={control} optionsArray={provincias} optionLabel="name" valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
+            <StdTextInput label="Localidad" name="localidad" control={control} errors={errors} validationRules={{required: requiredMsg}}/>
+            <StdTextInput label="Codigo Postal" name="codPostal" control={control} errors={errors} validationRules={{required: requiredMsg}}/>           
+        </StdBlock>
+    )
+}
+
+const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWidth, productos}) => {
+    const storageFact = {
+        setFunc: setValue,
+        field: "hiddenFotoFactura"
+    }
+
+    const storageProd = {
+        setFunc: setValue,
+        field: "hiddenFotoProducto"
+    }
+
+    return (
+        <StdBlock formWidth={formWidth} title="Producto">         
+            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="name"
+                            valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
+            <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>}/>   {/* TODO: obligar segun producto */}
+            
+            <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} storage={storageFact} />
+            <input type="hidden" {...register('hiddenFotoFactura')} />
+            
+            <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} storage={storageProd} />
+            <input type="hidden" {...register('hiddenFotoProducto')} />
+
+            <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} />
+            <StdTextInput label="Número factura de compra" name="nroFacturaCompra" control={control} validationRules={{required: requiredMsg}} errors={errors}  helperText="Ingresar en formato FC 0000-00000000"/>
+            <StdTextInput label="Descripción de la Falla" name="falla" control={control} validationRules={{required: requiredMsg}} errors={errors} size='l' toolTip="Indicar de la forma mas detallada posible"/>
+        </StdBlock>
+    )
+}
 
 
-
-
+ContactBlock.propTypes = {
+    control: PropTypes.object.isRequired,          // control de react-hook-form 
+    errors: PropTypes.object.isRequired,           // errors de react-hook-form 
+    requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
+    formWidth: PropTypes.string.isRequired         // para determinar el ancho de la pantalla 
+} 
+AddressBlock.propTypes = {
+    control: PropTypes.object.isRequired,          // control de react-hook-form 
+    errors: PropTypes.object.isRequired,           // errors de react-hook-form 
+    requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
+    formWidth: PropTypes.string.isRequired,         // para determinar el ancho de la pantalla 
+    provincias: PropTypes.array.isRequired
+} 
+ProductBlock.propTypes = {
+    control: PropTypes.object.isRequired,          // control de react-hook-form 
+    errors: PropTypes.object.isRequired,           // errors de react-hook-form 
+    requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
+    formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla 
+    productos: PropTypes.array.isRequired,
+    register: PropTypes.object.isRequired,          // register de react-hook-form
+    setValue: PropTypes.object.isRequired,          // setValue de react-hook-form
+} 

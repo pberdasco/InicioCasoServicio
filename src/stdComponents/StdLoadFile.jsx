@@ -34,7 +34,6 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
 
         if (file) {
             try {
-                console.log("1: ", subDirectory)
                 const fileData = await uploadFile(file, subDirectory);
                 if (fileData.success) {
                     setSelectedFileName(fileData.fileName);
