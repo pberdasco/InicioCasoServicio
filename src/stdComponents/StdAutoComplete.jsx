@@ -9,7 +9,7 @@ import { setSize } from "./fieldSize";
 
 
 export function StdAutoComplete({label, name, control, 
-                                optionsArray, optionLabel = null,
+                                optionsArray, optionLabel = null, optionLabel2 = null,
                                 isOptionDisabled, validationRules, errors, errorText,
                                 defaultValue, helperText, toolTip, size, variant})
 {
@@ -20,10 +20,22 @@ export function StdAutoComplete({label, name, control,
         return false;
     }
 
+    // function getOptionLabel(option){
+    //     if (!optionLabel) return option.label ?? option;
+    //     // if (valueProp) return `${option[valueProp]} - ${option[optionLabel]}`
+    //     return option[optionLabel] ?? option;
+    // }
+
     function getOptionLabel(option){
-        if (!optionLabel) return option.label ?? option;
-        // if (valueProp) return `${option[valueProp]} - ${option[optionLabel]}`
-        return option[optionLabel] ?? option;
+        if (!optionLabel && !optionLabel2) {
+            return option.label ?? option;
+        } else if (optionLabel && !optionLabel2 && option[optionLabel]) {
+            return option[optionLabel];
+        } else if (optionLabel && optionLabel2) {
+            return `${option[optionLabel]} - ${option[optionLabel2]}`;
+        } else {
+            return option;
+        }
     }
 
     function isOptionEqualToValue(option, value){
@@ -85,6 +97,7 @@ StdAutoComplete.propTypes = {
     control: PropTypes.object.isRequired,                         // directamente de useForm
     optionsArray: PropTypes.array.isRequired,                     // array de opciones, puede ser de strings o de objetos (en este caso pasar valueProp y optionLabel)
     optionLabel: PropTypes.string,                                // nombre de la propiedad a mostrar  (//TODO: quizas en el futuro cambiar a funcion para mostrar otras cosas)
+    optionLabel2: PropTypes.string,                               // segundo nombre de campo para mostrar campo - campo, por ejemplo "FK9384 - Producto FK9384"
     isOptionDisabled: PropTypes.func,                             // funcion que devuelve false para los elementos a deshabilitar
     validationRules: PropTypes.object.isRequired,                 // reglas de validacion segun react-hook-form {required: "campo requerido", validate: {funcValidacion}}
     errors: PropTypes.object.isRequired,                          // directamente el errors del formState del useForm

@@ -17,6 +17,7 @@ import { StdSnackAlert } from "../stdComponents/StdSnackAlert";
 import { StdSubmitButton } from "../stdComponents/StdSubmitButton"; 
 import { StdBlock } from "../stdComponents/StdBlock";
 import { DondeSerie } from "./Complements/DondeSerie";
+import { FormAgradecimiento } from "./FormAgradecimiento";
 
 // de picklists (TODO: Para reemplazar con cargas desde la base de datos)
 import { provincias } from "./picklists/Provincias";
@@ -32,7 +33,12 @@ import { DevTool } from "@hookform/devtools"
 export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
     const {token} = useParams();
-    const casoIds = {id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0};
+    
+
+    const [submit, setSubmit] = useState(0); // 0=no submit, 1=submit ok, -1=submit error
+    const [submitData, setSubmitData] = useState("")
+    const [success, setSuccess] = useState(false);
+    const [casoIds, setCasoIds] = useState({id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0});
 
     useEffect(() => {
         async function fetchData() {
@@ -44,10 +50,7 @@ export const FormGarantia = () => {
                 setValue("mail", casoData.cliente.mail);
                 setValue("nombre", casoData.cliente.nombre);
                 setValue("apellido", casoData.cliente.apellido);
-                casoIds.id = casoData.id;
-                casoIds.clienteId = casoData.cliente.id;
-                casoIds.tokenLink = token;
-                casoIds.statusDatosID = casoData.statusDatosID;
+                setCasoIds({id: casoData.id, clienteId: casoData.cliente.id, tokenLink: token, statusDatosID: casoData.statusDatosID})
             } catch (error) {
                 console.error("Error al obtener el caso:", error);
             }
@@ -58,14 +61,11 @@ export const FormGarantia = () => {
 
     const {
         handleSubmit,
-        // watch,
         control,
         register,
         setValue,
         formState: { errors },
     } = useForm();
-
-  //TODO: ver initial values para un update
 
     const storageFact = {
         setFunc: setValue,
@@ -77,26 +77,29 @@ export const FormGarantia = () => {
         field: "hiddenFotoProducto"
     }
 
-    const [submit, setSubmit] = useState(0); // 0=no submit, 1=submit ok, -1=submit error
-    const [submitData, setSubmitData] = useState("")
-    const onSubmit = (data) => {
-            // const output = {...data, fileNameImagenFactura: fileImagenFactura}
-            //data.imagenFactura = fileImagenFactura; // traigo el archivo que no se pudo setear en el control
-            const casoGrabado = Caso.Update(casoIds, data);
+    const onSubmit = async (data) => {
+            console.log(casoIds);
+            const casoGrabado = await Caso.Update(casoIds, data);
+            console.log(casoGrabado);
             if (casoGrabado.status){
                 setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
                 setSubmit(-1);
             }else{
                 setSubmitData(`Caso ${data.nroCaso} enviado con exito`);
+                setCasoIds({...casoIds, nombre: data.nombre, apellido: data.apellido, producto: data.producto.name})
                 setSubmit(1);
                 // enviar mail
-            }
-            
+            }      
     };
 
+    
 
     return (
-        <Container maxWidth={false} component="main" disableGutters>
+        (success) ? (
+            <FormAgradecimiento name= {`${casoIds.nombre} ${casoIds.apellido}`} product= {casoIds.producto}
+                                token= {token}  casoIdCRM= {casoIds.id}/>
+        ) : (
+            <Container maxWidth={false} component="main" disableGutters>
             <Box
                 component="section"
                 id="FormService"
@@ -134,7 +137,7 @@ export const FormGarantia = () => {
                         </StdBlock>
                         <StdBlock formWidth={formWidth} title="Producto">
                             
-                            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="name" 
+                            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="idERP" optionLabel2="name"
                                          valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
                             <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>}/>   {/* TODO: obligar segun producto */}
                             <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} storage={storageFact} />
@@ -150,14 +153,19 @@ export const FormGarantia = () => {
                         <StdSubmitButton label="Enviar" size="s"/>
                     </Box>
                 </form>
-                {(submit != 0) && ( <StdSnackAlert  open={submit} 
-                                            close= {() => setSubmit(false)}
+                {(submit != 0) && ( <StdSnackAlert  open={submit != 0} 
+                                            close= {() => {
+                                                submit == 1 ? setSuccess(true) : setSuccess(false); 
+                                                setSubmit(0);
+                                            }}
                                             text= {submitData}
                                             severity={submit === 1 ? "success" : "error"}/>)}
 
                 <DevTool control={control} />
             </Box>
         </Container>
+        )
+    
     );
 };
 

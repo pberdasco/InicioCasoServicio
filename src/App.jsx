@@ -15,7 +15,7 @@ import { InvalidLinkPage } from './pages/FormInvalidLink';
 import ErrorPage from './pages/Complements/error-page';
 
 // Router
-import { BrowserRouter, Routes, Route} from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { FormRedirect } from './pages/Complements/FormRedirect';
 import { GeneralContextProvider } from './Context/GeneralContext';
 import { SetUser } from './pages/Complements/SetUser';
@@ -34,11 +34,10 @@ function App() {
               <SetUser/>
               <ResponsiveAppBar/> {/* dentro del BrowserRouter porque en el componente usa <Link> que necesita un estado del contexto que crea BrowserRouter*/}
               <Routes>
-                <Route path= "/" element={<InvalidLinkPage/>} errorElement= {<ErrorPage/>} /> 
-                <Route path= "/:token" element={<FormGarantia />} errorElement= {<ErrorPage/>} />
+                <Route path= "/service/:token" element={<FormGarantia />} errorElement= {<ErrorPage/>} />
                 <Route path= "/inicio" element={<FormRedirect form={<FormIniciaCaso/>} from="/inicio"/>} errorElement= {<ErrorPage/>} />
-                {/* <Route path= "/text" element={<FormRedirect form={<FormTextInput/>} from="test"/>} errorElement= {<ErrorPage/>} />            */}
                 <Route path= "/login" element={<FormLogin />} errorElement= {<ErrorPage/>} />
+                <Route path= "*" element={<InvalidLinkPage/>} errorElement= {<ErrorPage/>} /> 
               </Routes>
             </BrowserRouter>
         </ThemeProvider>

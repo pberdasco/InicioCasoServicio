@@ -138,7 +138,7 @@ export class Caso {
                 tipoProductoId: 1, //TODO: ver de donde sacarlo
                 //color pareceria que no va mas
                 serie: casoData.serie,
-                productoId: 10, // TODO: por ahora solo tenemos el codigo erp y descripcion
+                productoId: casoData.producto.id,
                 fechaFactura: casoData.fechaFacturaCompra,
                 nroFactura: "ND", // TODO: pedir el dato
                 estadoID: 1,
