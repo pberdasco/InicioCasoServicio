@@ -114,52 +114,82 @@ export class Caso {
     }
 
     static bodyUpdate(casoIds, casoData){
-        const body = JSON.stringify({
-            //clienteId: casoIds.clienteId,  //no deberia modificarso
-            //fechaAlta: fInicioSQLFormat,   //no deberia modificarse
-            //fechaInicio y fechaFin deben seguir en blanco hasta statusdatosok
-            //idCRM: casoData.casoNro,       //no deberia modificarse
-            statusDatosID: 2, // lo pone en revision 
-            estadoID: 1, // Inicial
-            dirCalle: casoData.calle,
-            dirNumero: 0, //TODO: separar los campos
-            dirProvincia: casoData.provincia.id,
-            dirLocalidad: casoData.dirLocalidad,
-            dirCodigoPostal: casoData.codPostal,
-            fotoDestuccionLink: casoData.hiddenFotoProducto,
-            fallaStdId: 0,  // falla no definida aun
-            //falta foto factura hiddenFotoFactura
-            tokenLink: casoIds.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
+        const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
+        const body = 
+            {caso: JSON.stringify({    
+                //clienteId: casoIds.clienteId,  //no deberia modificarso
+                //fechaAlta: fInicioSQLFormat,   //no deberia modificarse
+                //fechaInicio y fechaFin deben seguir en blanco hasta statusdatosok
+                //idCRM: casoData.casoNro,       //no deberia modificarse
+                fechaCarga: fCargaSQLFormat,
+                statusDatosID: 2, // lo pone en revision 
+                estadoID: 1, // Inicial
+                dirCalle: casoData.calle,
+                dirNumero: 0, //TODO: separar los campos
+                dirProvincia: casoData.provincia.id,
+                dirLocalidad: casoData.dirLocalidad,
+                dirCodigoPostal: casoData.codPostal,
+                fallaStdId: 0,  // falla no definida aun
+                tokenLink: casoIds.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
 
-            items: [{
-                //id: se define al grabarlo
-                //casoId: lo pone la api
-                fila: 1,
-                tipoProductoId: 1, //TODO: ver de donde sacarlo
-                //color pareceria que no va mas
-                serie: casoData.serie,
-                productoId: casoData.producto.id,
-                fechaFactura: casoData.fechaFacturaCompra,
-                nroFactura: "ND", // TODO: pedir el dato
-                estadoID: 1,
-                fallaCliente: casoData.falla,
-            }]
-        });
-        console.log("Body: ", body);
+                items: [{
+                    //id: se define al grabarlo
+                    //casoId: lo pone la api
+                    fila: 1,
+                    tipoProductoId: casoData.producto.tipo,
+                    //color pareceria que no va mas
+                    serie: casoData.serie,
+                    productoId: casoData.producto.id,
+                    fechaFactura: casoData.fechaFacturaCompra,
+                    nroFactura: casoData.nroFacturaCompra,
+                    estadoID: 1,
+                    fallaCliente: casoData.falla,
+                    fallaStdId: 5, // 5= no definida aun
+                    fotoDestuccionLink: casoData.hiddenFotoProducto,
+                    fotoFacturaLink: casoData.hiddenFotoFactura,
+                }]
+            }),      
+            cliente: JSON.stringify({
+                nombre: casoData.nombre,
+                apellido: casoData.apellido,
+                telefono: casoData.telefono,
+                tipoDoc: "D",
+                documento: casoData.dni,
+                dirCalle: casoData.calle,
+                dirProvincia: casoData.provincia.id,
+                dirLocalidad: casoData.dirLocalidad,
+                dirCodigoPostal: casoData.codPostal,
+            })
+        }
         return body;
     }
 
     static async Update(casoIds, casoData){
-        console.log(JSON.stringify(casoData));
         try {
+            const bodyUpdate = Caso.bodyUpdate(casoIds, casoData);
+            console.log("bodyCaso: ", bodyUpdate.caso);
+            console.log("bodyCliente: ", bodyUpdate.cliente);
             const casoResponse = await fetch(`${apiBaseUrl}casos/all/${casoIds.id}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: Caso.bodyUpdate(casoIds, casoData),
+                body: bodyUpdate.caso,
             });
             if (casoResponse.ok) {
-                const casoResult = await casoResponse.json();
-                return casoResult;
+                const clienteResponse = await fetch(`${apiBaseUrl}clientes/${casoIds.clienteId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: bodyUpdate.cliente,
+                });
+                if (clienteResponse.ok) {
+                    const casoResult = await casoResponse.json();
+                    const clienteResult = await clienteResponse.json();
+                    return {casoResult, clienteResult};
+                } else {
+                    const status = clienteResponse.status;
+                    const errorData = await clienteResponse.json(); 
+                    const message = errorData?.message || "Error en la carga del caso"; 
+                    return { status, message };
+                }        
             } else {
                 const status = casoResponse.status;
                 const errorData = await casoResponse.json(); 

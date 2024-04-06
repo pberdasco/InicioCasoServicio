@@ -5,11 +5,9 @@ export function useFileUploader() {
     const uploadFile = async (file, directory="") => {
         const formData = new FormData();
         formData.append("file", file);
-        console.log("2: ", directory);
         if (directory) {
             formData.append("directory", directory);
         }
-        console.log("formData: ", formData.get("directory"))
         try {
             const response = await fetch(uploadFileService, {
                 method: "POST",

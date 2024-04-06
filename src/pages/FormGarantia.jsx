@@ -19,12 +19,10 @@ import { StdBlock } from "../stdComponents/StdBlock";
 import { DondeSerie } from "./Complements/DondeSerie";
 import { FormAgradecimiento } from "./FormAgradecimiento";
 
-// de picklists (TODO: Para reemplazar con cargas desde la base de datos)
-import { provincias } from "./picklists/Provincias";
-import { productos } from "./picklists/Productos";
-
 // de Apis
 import { Caso } from "../apiAccess/casoApi";
+import { Producto } from "../apiAccess/productoApi";
+import { Provincia } from "../apiAccess/provinciaApi";
 
 // Herramienta desarrollo / test
 import { DevTool } from "@hookform/devtools"
@@ -33,17 +31,22 @@ import { DevTool } from "@hookform/devtools"
 export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
     const {token} = useParams();
-    
 
     const [submit, setSubmit] = useState(0); // 0=no submit, 1=submit ok, -1=submit error
     const [submitData, setSubmitData] = useState("")
     const [success, setSuccess] = useState(false);
     const [casoIds, setCasoIds] = useState({id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0});
+    const [productos, setProductos] = useState([]);
+    const [provincias, setProvincias] = useState([]);
 
     useEffect(() => {
         async function fetchData() {
             try {
                 const casoData = await Caso.GetByToken(token);
+                const productosData = await Producto.GetAll();
+                setProductos(productosData);
+                const provinciasData = await Provincia.GetAll();
+                setProvincias(provinciasData);
                 // Inicializar el formulario aquí después de obtener los datos del caso
                 setValue("nroCaso", casoData.idCRM || 0);
                 setValue("fInicio", formatDate(dayjs()));
@@ -78,9 +81,8 @@ export const FormGarantia = () => {
     }
 
     const onSubmit = async (data) => {
-            console.log(casoIds);
             const casoGrabado = await Caso.Update(casoIds, data);
-            console.log(casoGrabado);
+            console.log("casoGrabado: ", casoGrabado);
             if (casoGrabado.status){
                 setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
                 setSubmit(-1);
@@ -91,8 +93,6 @@ export const FormGarantia = () => {
                 // enviar mail
             }      
     };
-
-    
 
     return (
         (success) ? (
@@ -118,26 +118,24 @@ export const FormGarantia = () => {
                             <StdTextInput label="Fecha Inicio" name="fInicio" control={control} errors={errors} size='s' readOnly/>
                         </Grid>
                         <StdBlock formWidth={formWidth} title="Contacto">
-                            <StdTextInput label="e-Mail" name="mail" control={control} errors={errors} toolTip="Ingrese el mail de contacto"
-                                            validationRules={{ required: requiredMsg, pattern: {value: /^[\w.-]+@[\w.-]+\.\w+$/, 
-                                            message: "La dirección de correo electrónico no es válida"} }}/>
+                            <StdTextInput label="e-Mail" name="mail" control={control} errors={errors} readOnly/>
                             <StdTextInput label="Nombre" name="nombre" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su nombre"/>
                             <StdTextInput label="Apellido" name="apellido" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su apellido"/>
                             <StdTextInput label="Teléfono" name="telefono" control={control} errors={errors} toolTip="Ingrese (nnn) nnnn-nnnn"
                                             validationRules={{ required: requiredMsg, pattern: {value: /^(?:\+\d{1,3}\s?)?(?:[()\s-]*\d){7,}$/,
-                                            message: "El teléfono no es válido. Ingrese (nnn) nnnn-nnnn"} }}/>
+                                            message: "El teléfono no es válido. Ingrese (nnn) nnnn-nnnn"} }} focus/>
                             <StdTextInput label="DNI" name="dni" control={control} errors={errors} validationRules={{required: requiredMsg}} />
                         </StdBlock>
                         <StdBlock formWidth={formWidth} title="Dirección">
                             <StdTextInput label="Calle y número" name="calle" control={control} errors={errors} toolTip="Ingrese el domicilio de entrega" 
-                                            helperText="Ingresar calle, numero (mas piso y dpto de corresponder)" validationRules={{required: requiredMsg}} size="l" focus/>    
+                                            helperText="Ingresar calle, numero (mas piso y dpto de corresponder)" validationRules={{required: requiredMsg}} size="l"/>    
                             <StdAutoComplete label="Provincia" name="provincia" control={control} optionsArray={provincias} optionLabel="name" valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
                             <StdTextInput label="Localidad" name="localidad" control={control} errors={errors} validationRules={{required: requiredMsg}}/>
                             <StdTextInput label="Codigo Postal" name="codPostal" control={control} errors={errors} validationRules={{required: requiredMsg}}/>           
                         </StdBlock>
                         <StdBlock formWidth={formWidth} title="Producto">
                             
-                            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="idERP" optionLabel2="name"
+                            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="name"
                                          valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
                             <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>}/>   {/* TODO: obligar segun producto */}
                             <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} storage={storageFact} />
@@ -146,10 +144,11 @@ export const FormGarantia = () => {
                             <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} storage={storageProd} />
                             <input type="hidden" {...register('hiddenFotoProducto')} />
 
-                            <StdDatePicker label="Fecha factura compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} />
+                            <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} />
+                            <StdTextInput label="Número factura de compra" name="nroFacturaCompra" control={control} validationRules={{required: requiredMsg}} errors={errors}  helperText="Ingresar en formato FC 0000-00000000"/>
                             <StdTextInput label="Descripción de la Falla" name="falla" control={control} validationRules={{required: requiredMsg}} errors={errors} size='l' toolTip="Indicar de la forma mas detallada posible"/>
                         </StdBlock>
-                        <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>          
+                        <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
                         <StdSubmitButton label="Enviar" size="s"/>
                     </Box>
                 </form>

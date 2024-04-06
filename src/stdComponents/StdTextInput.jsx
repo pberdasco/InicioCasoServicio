@@ -35,11 +35,12 @@ export function StdTextInput({label, name, control,
                             size="small" 
                             autoComplete={autoComplete}
                             variant={variant}   
-                            // inputProps={inputProps} eliminado porque hay muy pocas props que aplican
                             color={color}
                             type={type}
                             disabled={disabled}
-                            readOnly={readOnly}   //TODO: revisar porque no lo toma
+                            InputProps={{
+                                readOnly: readOnly,
+                            }}
                             autoFocus={focus}
                         />
                     </Tooltip>
