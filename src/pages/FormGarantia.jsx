@@ -20,14 +20,14 @@ import { StdSubmitButton } from "../stdComponents/StdSubmitButton";
 import { StdBlock } from "../stdComponents/StdBlock";
 import { DondeSerie } from "./Complements/DondeSerie";
 import { FormAgradecimiento } from "./FormAgradecimiento";
+import { FormError} from "./FormError";
 
-// de Apis
+// de Apis y Utils
 import { Caso } from "../apiAccess/casoApi";
 import { Producto } from "../apiAccess/productoApi";
 import { Provincia } from "../apiAccess/provinciaApi";
+import { loadDefaults } from './Complements/loadDefaultsGarantia';
 
-// Herramienta desarrollo / test
-import { DevTool } from "@hookform/devtools"
 
 export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
@@ -36,27 +36,26 @@ export const FormGarantia = () => {
     const [submit, setSubmit] = useState(0); // 0=no submit, 1=submit ok, -1=submit error
     const [submitData, setSubmitData] = useState("")
     const [success, setSuccess] = useState(false);
-    const [casoIds, setCasoIds] = useState({id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0});
+    const [casoIds, setCasoIds] = useState({id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0, modo: ""});
     const [productos, setProductos] = useState([]);
     const [provincias, setProvincias] = useState([]);
+    const [errorMsg, setErrorMsg] = useState("");
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const casoData = await Caso.GetByToken(token);
                 const productosData = await Producto.GetAll();
                 setProductos(productosData);
                 const provinciasData = await Provincia.GetAll();
                 setProvincias(provinciasData);
-                // Inicializar el formulario aquí después de obtener los datos del caso
-                setValue("nroCaso", casoData.idCRM || 0);
-                setValue("fInicio", formatDate(dayjs()));
-                setValue("mail", casoData.cliente.mail);
-                setValue("nombre", casoData.cliente.nombre);
-                setValue("apellido", casoData.cliente.apellido);
-                setCasoIds({id: casoData.id, clienteId: casoData.cliente.id, tokenLink: token, statusDatosID: casoData.statusDatosID})
+                // Obtener los datos del caso y setear:
+                // - Los campos del fomulario
+                // - setCasoIds
+                const status = await loadDefaults(token, setValue, setCasoIds, formatDate);
+                if (status != "Ok") setErrorMsg(status);
             } catch (error) {
                 console.error("Error al obtener el caso:", error);
+                setErrorMsg("Error al obtener el caso");
             }
         }
         fetchData();
@@ -72,36 +71,33 @@ export const FormGarantia = () => {
     } = useForm();
 
     const onSubmit = async (data) => {
-            const casoGrabado = await Caso.Update(casoIds, data);
-            console.log("casoGrabado: ", casoGrabado);
-            if (casoGrabado.status){
-                setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
-                setSubmit(-1);
-            }else{
-                setSubmitData(`Caso ${data.nroCaso} enviado con exito`);
-                setCasoIds({...casoIds, nombre: data.nombre, apellido: data.apellido, producto: data.producto.name})
-                setSubmit(1);
-                // enviar mail
-            }      
+        const casoGrabado = await Caso.Update(casoIds, data);
+        if (casoGrabado.status){
+            setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
+            setSubmit(-1);
+        }else{
+            setSubmitData(`Caso ${data.nroCaso} enviado con exito`);
+            setCasoIds({...casoIds, nombre: data.nombre, apellido: data.apellido, producto: data.producto.name})
+            setSubmit(1);
+            // enviar mail
+        }      
     };
 
     return (
+        (errorMsg) ? (
+            <FormError errorMsg={errorMsg}/>
+        ): (
         (success) ? (
             <FormAgradecimiento name= {`${casoIds.nombre} ${casoIds.apellido}`} product= {casoIds.producto}
                                 token= {token}  casoIdCRM= {casoIds.id}/>
         ) : (
             <Container maxWidth={false} component="main" disableGutters>
             <Box component="section" id="FormService" display="flex" justifyContent="center" alignItems="center" paddingY="8px">
-                <form onSubmit={handleSubmit(onSubmit)} style={{width: formWidth}}>
-                    <Box>
-                        <h1>Formulario de Reclamo de Garantías</h1>
-                    </Box>
-                    <Box paddingX="8px">
-                        <Grid container spacing={3}>
-                            <StdTextInput label="Nro Caso" name="nroCaso" control={control} errors={errors} size='s' readOnly/>
-                            <StdTextInput label="Fecha Inicio" name="fInicio" control={control} errors={errors} size='s' readOnly/>
-                        </Grid>
 
+                <form onSubmit={handleSubmit(onSubmit)} style={{width: formWidth}}>
+                    <Box> <h1>Formulario de Reclamo de Garantías</h1> </Box>
+                    <Box paddingX="8px">                   
+                        <IdBlock control={control} errors={errors}/>   
                         <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth}/>
                         <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias}/>
                         <ProductBlock control={control} errors={errors} register={register} setValue={setValue} requiredMsg={requiredMsg} formWidth={formWidth} productos={productos}/>
@@ -110,21 +106,24 @@ export const FormGarantia = () => {
                         <StdSubmitButton label="Enviar" size="s"/>
                     </Box>
                 </form>
-                {(submit != 0) && ( <StdSnackAlert  open={submit != 0} 
-                                            close= {() => {
-                                                submit == 1 ? setSuccess(true) : setSuccess(false); 
-                                                setSubmit(0);
-                                            }}
-                                            text= {submitData}
-                                            severity={submit === 1 ? "success" : "error"}/>)}
 
-                <DevTool control={control} />
+                <AlertBlock submit={submit} setSubmit={setSubmit} submitData={submitData} setSuccess={setSuccess}/> 
+
+                {/* <DevTool control={control} /> */}
             </Box>
         </Container>
-        )
-    
+        )) 
     );
 };
+
+const IdBlock = ({control, errors}) => {
+    return (
+        <Grid container spacing={3}>
+            <StdTextInput label="Nro Caso" name="nroCaso" control={control} errors={errors} size='s' readOnly/>
+            <StdTextInput label="Fecha de Creación del Caso" name="fInicio" control={control} errors={errors} size='s' readOnly/>
+        </Grid>
+    )
+}
 
 const ContactBlock = ({ control, errors, requiredMsg, formWidth}) => {
     return (
@@ -182,7 +181,24 @@ const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWid
     )
 }
 
+const AlertBlock = ({submit, setSubmit, submitData, setSuccess}) => {
+    return (
+    (submit != 0) && ( 
+        <StdSnackAlert  open={submit != 0} 
+            close= {() => {
+                submit == 1 ? setSuccess(true) : setSuccess(false); 
+                setSubmit(0);
+            }}
+            text= {submitData}
+            severity={submit === 1 ? "success" : "error"}/>
+    ))
+}
 
+
+IdBlock.propTypes = {
+    control: PropTypes.object.isRequired,          // control de react-hook-form 
+    errors: PropTypes.object.isRequired,           // errors de react-hook-form 
+} 
 ContactBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 
@@ -202,6 +218,12 @@ ProductBlock.propTypes = {
     requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
     formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla 
     productos: PropTypes.array.isRequired,
-    register: PropTypes.object.isRequired,          // register de react-hook-form
-    setValue: PropTypes.object.isRequired,          // setValue de react-hook-form
-} 
+    register: PropTypes.func.isRequired,          // register de react-hook-form
+    setValue: PropTypes.func.isRequired,          // setValue de react-hook-form
+}
+AlertBlock.propTypes = {
+    submit: PropTypes.number.isRequired,           
+    setSubmit: PropTypes.func.isRequired,          
+    submitData: PropTypes.string.isRequired,
+    setSuccess: PropTypes.func.isRequired 
+}  

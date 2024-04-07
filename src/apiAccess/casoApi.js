@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import 'dayjs/locale/es';
 
+import { CasoModel } from './casoModel';
+
 const apiBaseUrl = `http://192.168.78.103:5001/`;
 
 export class Caso {
@@ -100,7 +102,7 @@ export class Caso {
             const casoResponse = await fetch(`${apiBaseUrl}casos/token/${token}`);
             if (casoResponse.ok) {
                 const casoData = await casoResponse.json();
-                return casoData;
+                return new CasoModel(casoData);
             } else if (casoResponse.status === 404) {
                 const status = casoResponse.status;
                 const errorData = await casoResponse.json(); 
@@ -109,7 +111,7 @@ export class Caso {
             } 
         } catch (error) {
             console.log(error);
-            throw new Error("Error al buscar el caso");
+            return { status: 400, message: "Error al buscar el caso" };
         }
     }
 
@@ -127,7 +129,7 @@ export class Caso {
                 dirCalle: casoData.calle,
                 dirNumero: 0, //TODO: separar los campos
                 dirProvincia: casoData.provincia.id,
-                dirLocalidad: casoData.dirLocalidad,
+                dirLocalidad: casoData.localidad,
                 dirCodigoPostal: casoData.codPostal,
                 fallaStdId: 0,  // falla no definida aun
                 tokenLink: casoIds.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
@@ -157,7 +159,7 @@ export class Caso {
                 documento: casoData.dni,
                 dirCalle: casoData.calle,
                 dirProvincia: casoData.provincia.id,
-                dirLocalidad: casoData.dirLocalidad,
+                dirLocalidad: casoData.localidad,
                 dirCodigoPostal: casoData.codPostal,
             })
         }
@@ -167,8 +169,7 @@ export class Caso {
     static async Update(casoIds, casoData){
         try {
             const bodyUpdate = Caso.bodyUpdate(casoIds, casoData);
-            console.log("bodyCaso: ", bodyUpdate.caso);
-            console.log("bodyCliente: ", bodyUpdate.cliente);
+
             const casoResponse = await fetch(`${apiBaseUrl}casos/all/${casoIds.id}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
@@ -202,32 +203,3 @@ export class Caso {
         }
     }
 }
-
-
-
-/* 
-Cliente
-{
-    "codigo": "",
-  * "nombre": "",
-  * "apellido": "",
-  * "mail": "",
-    "empresa": "",
-    "tipoDoc": "D",
-    "documento": "",
-    "entregaDefault": 1,
-    "tipo": "I",
-    "dirCalle": "",
-    "dirNumero": "",
-    "dirProvincia": 1,  este hay que pasarlo aunque no lo tengamos porque es fk de la tabla de provincias
-    "dirLocalidad": "",
-    "dirCodigoPostal": "",
-    "idERP": "",
-    "idCRM": ""
-}
-
-Caso
-{
-
-}
-*/
