@@ -24,8 +24,8 @@ export const FormAgradecimiento = ({name, product, token, casoIdCRM}) => {
 };
 
 FormAgradecimiento.propTypes = {
-    name: PropTypes.string.isRequired,  
-    product: PropTypes.string.isRequired,
-    token: PropTypes.string.isRequired,
-    casoIdCRM: PropTypes.number.isRequired,
+  name: PropTypes.string.isRequired,  
+  product: PropTypes.string.isRequired,
+  token: PropTypes.string.isRequired,
+  casoIdCRM: PropTypes.number.isRequired,
 }  

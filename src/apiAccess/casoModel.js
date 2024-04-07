@@ -2,7 +2,6 @@ export class CasoModel {
     // constructor pensado para tomar datos de 
     // las apis de casos y volcarlos en el objeto
     constructor(data) {
-        console.log("constructor: ", data);
         this.id = data.id;                    
         this.idCRM = data.idCRM;
         this.tokenLink = data.tokenLink       // token de acceso al caso

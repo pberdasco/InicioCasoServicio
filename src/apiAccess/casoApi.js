@@ -115,6 +115,7 @@ export class Caso {
         }
     }
 
+    // Arma el body para llamar al endpoint PUT ../casos/all
     static bodyUpdate(casoIds, casoData){
         const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
         const body = 
