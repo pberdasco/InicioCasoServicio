@@ -12,7 +12,8 @@ export class Producto {
                       id: producto.id,
                       idERP: producto.idERP,
                       name: producto.nombre,
-                      tipo: producto.tipoProductoId
+                      tipoId: producto.tipoProductoId,
+                      tipo: producto.tipoNombre,
                     };
                   });
                 return productos;

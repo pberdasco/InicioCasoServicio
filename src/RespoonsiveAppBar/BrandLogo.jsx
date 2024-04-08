@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import Button from '@mui/material/Button';
+import logo from "../assets/tool-box.png";
 
 export function BrandLogo({screenSize}) {
     return (
@@ -16,7 +17,7 @@ export function BrandLogo({screenSize}) {
           }
         }}
       >
-        <img src="./tool-box.png" alt="ReactForm UI Kit" style={{ width: '40%' }}/>
+        <img src={logo} alt="ReactForm UI Kit" style={{ width: '40%' }}/>
       </Button>
     );
   }

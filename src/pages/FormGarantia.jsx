@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 import { useFormConfig } from "./Complements/useFormConfig";
 
 // de MaterialUI puro y dayjs
-import { Container, Box, Grid, Divider } from "@mui/material";
+import { Container, Box, Grid, Divider, ButtonBase } from "@mui/material";
 import dayjs from 'dayjs';
 
 // de stdComponents
@@ -29,6 +29,9 @@ import { Provincia } from "../apiAccess/provinciaApi";
 import { loadDefaults } from './Complements/loadDefaultsGarantia';
 
 
+import completar from "../assets/Completar.png";
+import secuencia from "../assets/Secuencia.png";
+
 export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
     const {token} = useParams();
@@ -39,7 +42,7 @@ export const FormGarantia = () => {
     const [casoIds, setCasoIds] = useState({id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0, modo: ""});
     const [productos, setProductos] = useState([]);
     const [provincias, setProvincias] = useState([]);
-    const [errorMsg, setErrorMsg] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");           // Indica si estoy en una situacion de error para desplegar pantalla de error
 
     useEffect(() => {
         async function fetchData() {
@@ -83,6 +86,8 @@ export const FormGarantia = () => {
         }      
     };
 
+    console.log("modo: ", casoIds.modo)
+
     return (
         (errorMsg) ? (
             <FormError errorMsg={errorMsg}/>
@@ -97,13 +102,15 @@ export const FormGarantia = () => {
                 <form onSubmit={handleSubmit(onSubmit)} style={{width: formWidth}}>
                     <Box> <h1>Formulario de Reclamo de Garantías</h1> </Box>
                     <Box paddingX="8px">                   
-                        <IdBlock control={control} errors={errors}/>   
-                        <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth}/>
+                        <IdBlock control={control} errors={errors}/>  
+                        {casoIds.modo !== "Alta" && (<InfoBlock formWidth={formWidth} mode={casoIds.modo} message={<p>Aca va el mensaje sobre el estado</p>}/>)} 
+                        <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} consulta={casoIds.modo == "Consulta"}/>
                         <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias}/>
                         <ProductBlock control={control} errors={errors} register={register} setValue={setValue} requiredMsg={requiredMsg} formWidth={formWidth} productos={productos}/>
 
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
-                        <StdSubmitButton label="Enviar" size="s"/>
+                        {casoIds.modo !== "Consulta" && (<StdSubmitButton label="Enviar" size="s"/>)}
+                        {casoIds.modo === "Consulta" && (<StdSubmitButton label="Salir" size="s"/>)}
                     </Box>
                 </form>
 
@@ -125,33 +132,54 @@ const IdBlock = ({control, errors}) => {
     )
 }
 
-const ContactBlock = ({ control, errors, requiredMsg, formWidth}) => {
+const InfoBlock = ({formWidth, mode, message}) => {
+    return (
+        <StdBlock formWidth={formWidth} title="Seguimiento del Caso">
+            <Grid item xs={1} >
+                <ButtonBase sx={{ width: 128, height: 128 }}>
+                    {mode === "Consulta" && <img alt="imagen" src={secuencia} style={{ width: "64px", height: "64px" }}/>}
+                    {mode === "Actualiza" &&  <img alt="imagen" src={completar} style={{ width: "64px", height: "64px" }}/>}
+                </ButtonBase>
+            </Grid>
+            <Grid item xs={11}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
+                    <div style={{ textAlign: 'center', padding: '20px'}}>
+                        <div style={{ color: 'red' }}>{message}</div>
+                        <div>Y cualquier otra informacion que corresponda</div>
+                    </div>
+                </div>        
+            </Grid>
+        </StdBlock>
+    )
+}
+
+const ContactBlock = ({ control, errors, requiredMsg, formWidth, consulta}) => {
     return (
         <StdBlock formWidth={formWidth} title="Contacto">
             <StdTextInput label="e-Mail" name="mail" control={control} errors={errors} readOnly/>
-            <StdTextInput label="Nombre" name="nombre" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su nombre"/>
-            <StdTextInput label="Apellido" name="apellido" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su apellido"/>
+            <StdTextInput label="Nombre" name="nombre" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su nombre" readOnly={consulta}/>
+            <StdTextInput label="Apellido" name="apellido" control={control} errors={errors} validationRules={{required: requiredMsg}} helperText="Ingrese su apellido" readOnly={consulta}/>
             <StdTextInput label="Teléfono" name="telefono" control={control} errors={errors} toolTip="Ingrese (nnn) nnnn-nnnn"
                             validationRules={{ required: requiredMsg, pattern: {value: /^(?:\+\d{1,3}\s?)?(?:[()\s-]*\d){7,}$/,
-                            message: "El teléfono no es válido. Ingrese (nnn) nnnn-nnnn"} }} focus/>
-            <StdTextInput label="DNI" name="dni" control={control} errors={errors} validationRules={{required: requiredMsg}} />
+                            message: "El teléfono no es válido. Ingrese (nnn) nnnn-nnnn"} }} focus readOnly={consulta}/>
+            <StdTextInput label="DNI" name="dni" control={control} errors={errors} validationRules={{required: requiredMsg}} readOnly={consulta}/>
         </StdBlock>
     )
 }
 
-const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias}) => {
+const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias, consulta}) => {
     return (
         <StdBlock formWidth={formWidth} title="Dirección">
             <StdTextInput label="Calle y número" name="calle" control={control} errors={errors} toolTip="Ingrese el domicilio de entrega" 
-                            helperText="Ingresar calle, numero (mas piso y dpto de corresponder)" validationRules={{required: requiredMsg}} size="l"/>    
-            <StdAutoComplete label="Provincia" name="provincia" control={control} optionsArray={provincias} optionLabel="name" valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
-            <StdTextInput label="Localidad" name="localidad" control={control} errors={errors} validationRules={{required: requiredMsg}}/>
-            <StdTextInput label="Codigo Postal" name="codPostal" control={control} errors={errors} validationRules={{required: requiredMsg}}/>           
+                            helperText="Ingresar calle, numero (mas piso y dpto de corresponder)" validationRules={{required: requiredMsg}} size="l" readOnly={consulta}/>    
+            <StdAutoComplete label="Provincia" name="provincia" control={control} optionsArray={provincias} optionLabel="name" valueProp="id" validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
+            <StdTextInput label="Localidad" name="localidad" control={control} errors={errors} validationRules={{required: requiredMsg}} readOnly={consulta}/>
+            <StdTextInput label="Codigo Postal" name="codPostal" control={control} errors={errors} validationRules={{required: requiredMsg}} readOnly={consulta}/>           
         </StdBlock>
     )
 }
 
-const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWidth, productos}) => {
+const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWidth, productos, consulta}) => {
     const storageFact = {
         setFunc: setValue,
         field: "hiddenFotoFactura"
@@ -164,9 +192,9 @@ const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWid
 
     return (
         <StdBlock formWidth={formWidth} title="Producto">         
-            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="name"
-                            valueProp="id" validationRules={{required: requiredMsg}} errors={errors} />
-            <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>}/>   {/* TODO: obligar segun producto */}
+            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="tipo" optionLabel2="name"
+                            valueProp="id" validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
+            <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
             
             <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} storage={storageFact} />
             <input type="hidden" {...register('hiddenFotoFactura')} />
@@ -174,9 +202,9 @@ const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWid
             <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} storage={storageProd} />
             <input type="hidden" {...register('hiddenFotoProducto')} />
 
-            <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} />
-            <StdTextInput label="Número factura de compra" name="nroFacturaCompra" control={control} validationRules={{required: requiredMsg}} errors={errors}  helperText="Ingresar en formato FC 0000-00000000"/>
-            <StdTextInput label="Descripción de la Falla" name="falla" control={control} validationRules={{required: requiredMsg}} errors={errors} size='l' toolTip="Indicar de la forma mas detallada posible"/>
+            <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} readOnly={consulta}/>
+            <StdTextInput label="Número factura de compra" name="nroFacturaCompra" control={control} validationRules={{required: requiredMsg}} errors={errors}  helperText="Ingresar en formato FC 0000-00000000" readOnly={consulta}/>
+            <StdTextInput label="Descripción de la Falla" name="falla" control={control} validationRules={{required: requiredMsg}} errors={errors} size='l' toolTip="Indicar de la forma mas detallada posible" readOnly={consulta}/>
         </StdBlock>
     )
 }
@@ -199,18 +227,25 @@ IdBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 
 } 
+InfoBlock.propTypes = {
+    formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla  
+    mode: PropTypes.string.isRequired,
+    message: PropTypes.element
+} 
 ContactBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 
     requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
-    formWidth: PropTypes.string.isRequired         // para determinar el ancho de la pantalla 
+    formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla 
+    consulta: PropTypes.bool
 } 
 AddressBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 
     requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
     formWidth: PropTypes.string.isRequired,         // para determinar el ancho de la pantalla 
-    provincias: PropTypes.array.isRequired
+    provincias: PropTypes.array.isRequired,
+    consulta: PropTypes.bool
 } 
 ProductBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
@@ -220,6 +255,7 @@ ProductBlock.propTypes = {
     productos: PropTypes.array.isRequired,
     register: PropTypes.func.isRequired,          // register de react-hook-form
     setValue: PropTypes.func.isRequired,          // setValue de react-hook-form
+    consulta: PropTypes.bool
 }
 AlertBlock.propTypes = {
     submit: PropTypes.number.isRequired,           

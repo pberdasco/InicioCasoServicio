@@ -57,7 +57,7 @@ export const loadDefaults = async (token, setValue, setCasoIds, formatDate) => {
         setCasoIds({id: casoData.id, clienteId: casoData.cliente.id, tokenLink: token, statusDatosID: casoData.statusDatosID, modo: modo})
         return "Ok";
     } else {
-        return casoData.status.message;
+        return `Error ${casoData.status} - ${casoData.message}`;
     }
 
 

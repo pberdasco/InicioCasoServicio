@@ -106,7 +106,7 @@ export class Caso {
             } else if (casoResponse.status === 404) {
                 const status = casoResponse.status;
                 const errorData = await casoResponse.json(); 
-                const message = errorData?.message || "Caso por token no encontrado"; 
+                const message = errorData?.message || "Caso por token no encontrado";
                 return { status, message };
             } 
         } catch (error) {
