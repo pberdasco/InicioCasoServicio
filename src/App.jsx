@@ -18,6 +18,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { FormRedirect } from './pages/Complements/FormRedirect';
 import { GeneralContextProvider } from './Context/GeneralContext';
 import { SetUser } from './pages/Complements/SetUser';
+import { CasosTable } from './pages/CasosTable/CasosTable';
 
 
 const theme = createTheme({});
@@ -36,6 +37,7 @@ function App() {
                 <Route path= "/service/:token" element={<FormGarantia />}/>
                 <Route path= "/inicio" element={<FormRedirect form={<FormIniciaCaso/>} from="/inicio"/>}/>
                 <Route path= "/login" element={<FormLogin />}/>
+                <Route path= "/monitor" element={<FormRedirect form={<CasosTable/>} from="/monitor"/>}/>
                 <Route path= "*" element={<InvalidLinkPage/>}/> 
               </Routes>
             </BrowserRouter>
