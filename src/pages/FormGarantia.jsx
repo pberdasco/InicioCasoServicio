@@ -1,16 +1,16 @@
 import PropTypes from 'prop-types';
 
-// De React y React-hook-form
+//* De React y React-hook-form
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from 'react-router-dom';
 import { useFormConfig } from "./Complements/useFormConfig";
 
-// de MaterialUI puro y dayjs
+//* de MaterialUI puro y dayjs
 import { Container, Box, Grid, Divider, ButtonBase } from "@mui/material";
 import dayjs from 'dayjs';
 
-// de stdComponents
+//* de stdComponents
 import { StdTextInput } from "../stdComponents/StdTextInput";
 import { StdAutoComplete } from "../stdComponents/StdAutoComplete";
 import { StdDatePicker } from "../stdComponents/StdDatePicker";
@@ -22,7 +22,7 @@ import { DondeSerie } from "./Complements/DondeSerie";
 import { FormAgradecimiento } from "./FormAgradecimiento";
 import { FormError} from "./FormError";
 
-// de Apis y Utils
+//* de Apis y Utils
 import { Caso } from "../apiAccess/casoApi";
 import { Producto } from "../apiAccess/productoApi";
 import { Provincia } from "../apiAccess/provinciaApi";
@@ -36,14 +36,15 @@ export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
     const {token} = useParams();
 
-    const [submit, setSubmit] = useState(0); // 0=no submit, 1=submit ok, -1=submit error
+    const [submit, setSubmit] = useState(0);             // 0=no submit, 1=submit ok, -1=submit error
     const [submitData, setSubmitData] = useState("")
     const [success, setSuccess] = useState(false);
-    const [casoIds, setCasoIds] = useState({id: 0, tokenLink: "", clienteId: 0, statusDatosID: 0, modo: ""});
-    const [productos, setProductos] = useState([]);
-    const [provincias, setProvincias] = useState([]);
-    const [errorMsg, setErrorMsg] = useState("");           // Indica si estoy en una situacion de error para desplegar pantalla de error
+    const [casoActual, setCasoActual] = useState({});    // registro del caso actual (lo que trae un get de la api + modo)
+    const [productos, setProductos] = useState([]);      // array picklist de productos
+    const [provincias, setProvincias] = useState([]);    // array picklist de provincias
+    const [errorMsg, setErrorMsg] = useState("");        // Indica si estoy en una situacion de error para desplegar pantalla de error
 
+    //* Carga de defaults y picklists + casoActual
     useEffect(() => {
         async function fetchData() {
             try {
@@ -51,10 +52,9 @@ export const FormGarantia = () => {
                 setProductos(productosData);
                 const provinciasData = await Provincia.GetAll();
                 setProvincias(provinciasData);
-                // Obtener los datos del caso y setear:
-                // - Los campos del fomulario
-                // - setCasoIds
-                const status = await loadDefaults(token, setValue, setCasoIds, formatDate);
+                // Obtener los datos del caso y setear: Los campos del fomulario y setCasoActual
+                // status sera un string "Ok" o "Error ..."
+                const status = await loadDefaults(token, setValue, setCasoActual, formatDate);
                 if (status != "Ok") setErrorMsg(status);
             } catch (error) {
                 console.error("Error al obtener el caso:", error);
@@ -65,6 +65,7 @@ export const FormGarantia = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
+    //* React-hook-form: elementos a utilizar del useForm
     const {
         handleSubmit,
         control,
@@ -73,26 +74,28 @@ export const FormGarantia = () => {
         formState: { errors },
     } = useForm();
 
+    //* Grabación y envio de mail al completar el form
     const onSubmit = async (data) => {
-        const casoGrabado = await Caso.Update(casoIds, data);
+        const casoGrabado = await Caso.Update(data, casoActual, setCasoActual);
         if (casoGrabado.status){
             setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
             setSubmit(-1);
         }else{
             setSubmitData(`Caso ${data.nroCaso} enviado con exito`);
-            setCasoIds({...casoIds, nombre: data.nombre, apellido: data.apellido, producto: data.producto.name})
             setSubmit(1);
-            // enviar mail
+            // TODO: enviar mail
         }      
     };
 
+    //* Render formulario
     return (
         (errorMsg) ? (
             <FormError errorMsg={errorMsg}/>
         ): (
         (success) ? (
-            <FormAgradecimiento name= {`${casoIds.nombre} ${casoIds.apellido}`} product= {casoIds.producto}
-                                token= {token}  casoIdCRM= {casoIds.id}/>
+            <FormAgradecimiento name= {`${casoActual.cliente.nombre} ${casoActual.cliente.apellido}`} 
+                                product= {`${casoActual.items[0]?.producto.tipo} ${casoActual.items[0]?.producto.nombre}`}
+                                token= {casoActual.tokenLink}  casoIdCRM= {casoActual.idCRM}/>
         ) : (
             <Container maxWidth={false} component="main" disableGutters>
             <Box component="section" id="FormService" display="flex" justifyContent="center" alignItems="center" paddingY="8px">
@@ -101,14 +104,15 @@ export const FormGarantia = () => {
                     <Box> <h1>Formulario de Reclamo de Garantías</h1> </Box>
                     <Box paddingX="8px">                   
                         <IdBlock control={control} errors={errors}/>  
-                        {casoIds.modo !== "Alta" && (<InfoBlock formWidth={formWidth} mode={casoIds.modo} message={<p>Aca va el mensaje sobre el estado</p>}/>)} 
-                        <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} consulta={casoIds.modo == "Consulta"}/>
-                        <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias}/>
-                        <ProductBlock control={control} errors={errors} register={register} setValue={setValue} requiredMsg={requiredMsg} formWidth={formWidth} productos={productos}/>
+                        {(casoActual.modo === "Consulta" || casoActual.modo === "Actualiza")
+                             && (<InfoBlock formWidth={formWidth} casoActual={casoActual}/>)} 
+                        <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} consulta={casoActual.modo == "Consulta"}/>
+                        <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias} consulta={casoActual.modo == "Consulta"}/>
+                        <ProductBlock control={control} errors={errors} register={register} setValue={setValue} requiredMsg={requiredMsg} formWidth={formWidth} productos={productos} consulta={casoActual.modo == "Consulta"}/>
 
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
-                        {casoIds.modo !== "Consulta" && (<StdSubmitButton label="Enviar" size="s"/>)}
-                        {casoIds.modo === "Consulta" && (<StdSubmitButton label="Salir" size="s"/>)}
+                        {casoActual.modo !== "Consulta" && (<StdSubmitButton label="Enviar" size="s"/>)}
+                        {casoActual.modo === "Consulta" && (<StdSubmitButton label="Salir" size="s"/>)}
                     </Box>
                 </form>
 
@@ -130,20 +134,26 @@ const IdBlock = ({control, errors}) => {
     )
 }
 
-const InfoBlock = ({formWidth, mode, message}) => {
+const InfoBlock = ({formWidth, casoActual}) => {
     return (
         <StdBlock formWidth={formWidth} title="Seguimiento del Caso">
             <Grid item xs={1} >
                 <ButtonBase sx={{ width: 128, height: 128 }}>
-                    {mode === "Consulta" && <img alt="imagen" src={secuencia} style={{ width: "64px", height: "64px" }}/>}
-                    {mode === "Actualiza" &&  <img alt="imagen" src={completar} style={{ width: "64px", height: "64px" }}/>}
+                    {casoActual.modo === "Consulta" && <img alt="imagen" src={secuencia} style={{ width: "64px", height: "64px" }}/>}
+                    {casoActual.modo === "Actualiza" &&  <img alt="imagen" src={completar} style={{ width: "64px", height: "64px" }}/>}
                 </ButtonBase>
             </Grid>
             <Grid item xs={11}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
                     <div style={{ textAlign: 'center', padding: '20px'}}>
-                        <div style={{ color: 'red' }}>{message}</div>
-                        <div>Y cualquier otra informacion que corresponda</div>
+                        {(casoActual.statusDatosID == 3) ? // Datos Faltantes
+                            <div style={{ color: 'red' }}>Oops! Faltan datos o hay datos incorrectos</div> :
+                            (casoActual.statusDatosID == 2) ?  // En revisión
+                                <div style={{ color: 'blue' }}>Estamos revisando la información que ha registrado. Le informaremos por mail cuando hayamos completado la revisión. En todo momento puede ingresar en el mismo link para conocer el avance del caso</div> :
+                                <div style={{ color: 'green' }}>{`Los datos ingresados estaban completos y correctos. Hemos comenzado a procesar el caso el dia ${casoActual.fechaInicio}`}</div>
+                        }
+                        <div>{casoActual.mensaje}</div>
+                        
                     </div>
                 </div>        
             </Grid>
@@ -227,8 +237,7 @@ IdBlock.propTypes = {
 } 
 InfoBlock.propTypes = {
     formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla  
-    mode: PropTypes.string.isRequired,
-    message: PropTypes.element
+    casoActual: PropTypes.object,
 } 
 ContactBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 

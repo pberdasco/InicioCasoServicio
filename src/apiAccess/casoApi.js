@@ -116,11 +116,11 @@ export class Caso {
     }
 
     // Arma el body para llamar al endpoint PUT ../casos/all
-    static bodyUpdate(casoIds, casoData){
+    static bodyUpdate(casoActual, casoData){
         const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
         const body = 
             {caso: JSON.stringify({    
-                //clienteId: casoIds.clienteId,  //no deberia modificarso
+                //clienteId: casoActual.cliente.id,  //no deberia modificarso
                 //fechaAlta: fInicioSQLFormat,   //no deberia modificarse
                 //fechaInicio y fechaFin deben seguir en blanco hasta statusdatosok
                 //idCRM: casoData.casoNro,       //no deberia modificarse
@@ -133,7 +133,7 @@ export class Caso {
                 dirLocalidad: casoData.localidad,
                 dirCodigoPostal: casoData.codPostal,
                 fallaStdId: 0,  // falla no definida aun
-                tokenLink: casoIds.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
+                tokenLink: casoActual.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
 
                 items: [{
                     //id: se define al grabarlo
@@ -167,25 +167,28 @@ export class Caso {
         return body;
     }
 
-    static async Update(casoIds, casoData){
+    static async Update(casoData, casoActual, setCasoActual){
         try {
-            const bodyUpdate = Caso.bodyUpdate(casoIds, casoData);
+            const bodyUpdate = Caso.bodyUpdate(casoActual, casoData);
 
-            const casoResponse = await fetch(`${apiBaseUrl}casos/all/${casoIds.id}`, {
+            const casoResponse = await fetch(`${apiBaseUrl}casos/all/${casoActual.id}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: bodyUpdate.caso,
             });
             if (casoResponse.ok) {
-                const clienteResponse = await fetch(`${apiBaseUrl}clientes/${casoIds.clienteId}`, {
+                const clienteResponse = await fetch(`${apiBaseUrl}clientes/${casoActual.cliente.id}`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
                     body: bodyUpdate.cliente,
                 });
                 if (clienteResponse.ok) {
                     const casoResult = await casoResponse.json();
-                    const clienteResult = await clienteResponse.json();
-                    return {casoResult, clienteResult};
+                    casoResult.modo = "Cargado";
+                    setCasoActual(casoResult);
+                    return "Ok";
+                    // const clienteResult = await clienteResponse.json();
+                    // return {casoResult, clienteResult};
                 } else {
                     const status = clienteResponse.status;
                     const errorData = await clienteResponse.json(); 

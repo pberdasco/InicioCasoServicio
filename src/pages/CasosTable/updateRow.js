@@ -4,7 +4,7 @@ import { Caso } from "../../apiAccess/casoApi";
 export async function setStatusDatos(estado, mensaje, row, setCasosUpdated) {    
     try{
         console.log("grabando el nuevo estado y mensaje: ", estado, mensaje)
-        const dataCasos = await Caso.partialUpdate(row.original.id, {statusDatosID: estado});  //mensaje: mensaje
+        const dataCasos = await Caso.partialUpdate(row.original.id, {statusDatosID: estado, mensaje: mensaje});  
         if (!dataCasos.errorStatus){
             setCasosUpdated({row})
         }else{

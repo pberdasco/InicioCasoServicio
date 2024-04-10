@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
  * @param {function} setCasoIds - Función para actualizar el estado de los IDs del caso.
  * @param {function} formatDate - Función para formatear la fecha.
  */
-export const loadDefaults = async (token, setValue, setCasoIds, formatDate) => {
+export const loadDefaults = async (token, setValue, setCasoActual, formatDate) => {
     // Obtener los datos del caso utilizando el token.
     // tener en cuenta que estos formularios:
     // si estoy en modo alta (statusDatos = 0) solo cargo datos básicos ingresados por el contact center
@@ -40,7 +40,7 @@ export const loadDefaults = async (token, setValue, setCasoIds, formatDate) => {
             const i = casoData.items[0]
             setValue("producto", {id: i.producto.id, idERP: i.producto.idERP, name: i.producto.nombre, tipo: i.producto.tipo})
             setValue("serie", i.serie);
-            // Los controles de fotoFactura y fotoProducto (file) no admiten recibir texto
+            // TODO: Los controles de fotoFactura y fotoProducto (file) no admiten recibir texto
             // TODO: buscar por que no anda cuando fInicio va perfecto
             // const f = formatDate(dayjs(i.fechaFactura))
             // console.log(f, typeof(f));
@@ -52,9 +52,9 @@ export const loadDefaults = async (token, setValue, setCasoIds, formatDate) => {
             if (casoData.statusDatosID === 3) modo = "Actualiza" 
             else modo = "Consulta";
         }
-
-        // setear en casoIds valores del caso que no van al formulario pero son necesarios para el funcionamiento de este (en general ids del caso, cliente, status, etc que no se muestran)
-        setCasoIds({id: casoData.id, clienteId: casoData.cliente.id, tokenLink: token, statusDatosID: casoData.statusDatosID, modo: modo})
+        //Setea casoActual con el registro recibido del get a la BD + modo
+        casoData.modo = modo;
+        setCasoActual(casoData);
         return "Ok";
     } else {
         return `Error ${casoData.status} - ${casoData.message}`;

@@ -14,6 +14,7 @@ export class CasoModel {
         // this.retiro => no se usa
         // this. opcionRetiroId => no se usa
         this.tipoCaso = data.tipoCaso;        // C: cons final / R: retail
+        this.mensaje = data.mensaje;
         
         // === datos direccion ===
         this.direccion = {};

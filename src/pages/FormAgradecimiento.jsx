@@ -27,5 +27,5 @@ FormAgradecimiento.propTypes = {
   name: PropTypes.string.isRequired,  
   product: PropTypes.string.isRequired,
   token: PropTypes.string.isRequired,
-  casoIdCRM: PropTypes.number.isRequired,
+  casoIdCRM: PropTypes.string.isRequired,
 }  

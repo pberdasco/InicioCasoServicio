@@ -35,7 +35,7 @@ export const useCasosColumn = () => {
                       cell.getValue() == 0 ? 'black'
                         : cell.getValue() == 1 ? 'green' 
                           : cell.getValue() == 2 ? 'blue' 
-                            : cell.getValue() == 3 ? 'orange' : 'green',
+                            : cell.getValue() == 3 ? 'orange' : 'red',
                     borderRadius: '0.25rem',
                     color: '#fff',
                     maxWidth: '9ch',
@@ -57,11 +57,11 @@ export const useCasosColumn = () => {
             filterVariant: 'autocomplete',
             size: 200,
           },
-        //   {
-        //     accessorKey: 'items[0].producto.nombre',
-        //     header: 'Producto',
-        //     size: 150,
-        //   },
+          {
+            accessorKey: 'tokenLink',
+            header: 'Token',
+            size: 100,
+          },
         ],
         [],
     );
