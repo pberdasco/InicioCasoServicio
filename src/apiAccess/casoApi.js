@@ -117,6 +117,10 @@ export class Caso {
 
     // Arma el body para llamar al endpoint PUT ../casos/all
     static bodyUpdate(casoIds, casoData){
+        console.groupCollapsed("bodyUpdate");
+        console.log("casoIds: ", casoIds);
+        console.log("casoData: ", casoData);
+        
         const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
         const body = 
             {caso: JSON.stringify({    
@@ -129,7 +133,7 @@ export class Caso {
                 estadoID: 1, // Inicial
                 dirCalle: casoData.calle,
                 dirNumero: 0, //TODO: separar los campos
-                dirProvincia: casoData.provincia.id,
+                dirProvinciaId: casoData.provincia.id,
                 dirLocalidad: casoData.localidad,
                 dirCodigoPostal: casoData.codPostal,
                 fallaStdId: 0,  // falla no definida aun
@@ -139,10 +143,10 @@ export class Caso {
                     //id: se define al grabarlo
                     //casoId: lo pone la api
                     fila: 1,
-                    tipoProductoId: casoData.producto.tipo,
+                    productoId: casoData.producto.id,
+                    tipoProductoId: casoData.producto.tipoId,
                     //color pareceria que no va mas
                     serie: casoData.serie,
-                    productoId: casoData.producto.id,
                     fechaFactura: casoData.fechaFacturaCompra,
                     nroFactura: casoData.nroFacturaCompra,
                     estadoID: 1,
@@ -164,6 +168,8 @@ export class Caso {
                 dirCodigoPostal: casoData.codPostal,
             })
         }
+        console.log("body: ", body);
+        console.groupEnd();
         return body;
     }
 

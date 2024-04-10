@@ -86,8 +86,6 @@ export const FormGarantia = () => {
         }      
     };
 
-    console.log("modo: ", casoIds.modo)
-
     return (
         (errorMsg) ? (
             <FormError errorMsg={errorMsg}/>
