@@ -117,10 +117,6 @@ export class Caso {
 
     // Arma el body para llamar al endpoint PUT ../casos/all
     static bodyUpdate(casoIds, casoData){
-        console.groupCollapsed("bodyUpdate");
-        console.log("casoIds: ", casoIds);
-        console.log("casoData: ", casoData);
-        
         const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
         const body = 
             {caso: JSON.stringify({    
@@ -133,7 +129,7 @@ export class Caso {
                 estadoID: 1, // Inicial
                 dirCalle: casoData.calle,
                 dirNumero: 0, //TODO: separar los campos
-                dirProvinciaId: casoData.provincia.id,
+                dirProvincia: casoData.provincia.id,
                 dirLocalidad: casoData.localidad,
                 dirCodigoPostal: casoData.codPostal,
                 fallaStdId: 0,  // falla no definida aun
@@ -143,10 +139,10 @@ export class Caso {
                     //id: se define al grabarlo
                     //casoId: lo pone la api
                     fila: 1,
-                    productoId: casoData.producto.id,
-                    tipoProductoId: casoData.producto.tipoId,
+                    tipoProductoId: casoData.producto.tipo,
                     //color pareceria que no va mas
                     serie: casoData.serie,
+                    productoId: casoData.producto.id,
                     fechaFactura: casoData.fechaFacturaCompra,
                     nroFactura: casoData.nroFacturaCompra,
                     estadoID: 1,
@@ -168,8 +164,6 @@ export class Caso {
                 dirCodigoPostal: casoData.codPostal,
             })
         }
-        console.log("body: ", body);
-        console.groupEnd();
         return body;
     }
 
@@ -207,6 +201,52 @@ export class Caso {
         } catch (error) {
             console.log(error);
             return { status: 500, message: "Error interno del servidor" };
+        }
+    }
+
+    //Funcion para grabar algun campo que cambia en la cabecera del caso
+    //el casoId es obligatorio, el partialCasoData es un objeto que puede tener uno o mas datos,
+    // usa un enpoint distinto a Update porque no modifica items
+    //deben coincidir (por el momento) con los nombres que acepta la api.
+    //TODO: unificar con Update, haciendo que update no cree los datos que no le lleguen y que haga validaciones
+    static async partialUpdate(casoId, partialCasoData){
+        try {
+            const casoResponse = await fetch(`${apiBaseUrl}casos/${casoId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(partialCasoData)
+            });
+            if (casoResponse.ok) {
+                    const casoResult = await casoResponse.json();
+                    return {casoResult};
+            } else {
+                const status = casoResponse.status;
+                const errorData = await casoResponse.json(); 
+                const message = errorData?.message || "Error en el update del caso"; 
+                return { status, message };
+            }
+        } catch (error) {
+            console.log(error);
+            return { status: 500, message: "Error interno del servidor" };
+        }
+    }
+
+    static async GetAll(){
+        try {
+            const casoResponse = await fetch(`${apiBaseUrl}casos/`);
+            if (casoResponse.ok) {
+                const casoData = await casoResponse.json();
+                const casos = casoData.map(caso => new CasoModel(caso));
+                return casos;
+            } else if (casoResponse.status === 404) {
+                const status = casoResponse.status;
+                const errorData = await casoResponse.json(); 
+                const message = errorData?.message || "Caso por token no encontrado";
+                return { status, message };
+            } 
+        } catch (error) {
+            console.log(error);
+            return { status: 400, message: "Error al buscar el caso" };
         }
     }
 }
