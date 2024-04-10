@@ -10,9 +10,9 @@ const renderRowActinMenuItems = ({row, datosModalOpen, setStatusUpdateInfo}) => 
     const status  = row.original.statusDatosID;
 
     const handleStatusChange = (newStatus) => {
-        setStatusUpdateInfo({newStatus: newStatus, row: row})
+        //setea statusUpdateInfo para que luego desde CasosTable (cuando se cierra la modal) se llame a actualizar
+        setStatusUpdateInfo({newStatus: newStatus, row: row});
         datosModalOpen();
-        //setStatusDatos(newStatus, row, setCasosUpdated);
     };
 
     return [
@@ -25,7 +25,7 @@ const renderRowActinMenuItems = ({row, datosModalOpen, setStatusUpdateInfo}) => 
         <MenuItem key="aOk" onClick={() => handleStatusChange(1)} disabled={status === 1}>
             Pasar a: Datos OK (1)
         </MenuItem>,
-        <MenuItem key="aImportado" onClick={() => handleStatusChange(1)} disabled={status === 4}>
+        <MenuItem key="aImportado" onClick={() => handleStatusChange(4)} disabled={status === 4}>
             Pasar a: Importado ERP (4)
         </MenuItem>,
         <MenuItem key="aCreado" onClick={() => handleStatusChange(0)} disabled={status === 0}>

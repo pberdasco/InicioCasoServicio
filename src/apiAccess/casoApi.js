@@ -139,10 +139,10 @@ export class Caso {
                     //id: se define al grabarlo
                     //casoId: lo pone la api
                     fila: 1,
-                    tipoProductoId: casoData.producto.tipo,
+                    productoId: casoData.producto.id,
+                    tipoProductoId: casoData.producto.tipoId,
                     //color pareceria que no va mas
                     serie: casoData.serie,
-                    productoId: casoData.producto.id,
                     fechaFactura: casoData.fechaFacturaCompra,
                     nroFactura: casoData.nroFacturaCompra,
                     estadoID: 1,

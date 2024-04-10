@@ -9,7 +9,7 @@ import { NavDropDownMenu } from './NavDropDownMenu';
 import { SettingsDropDownMenu } from './SettingsDropDownMenu';
 import { UserDisplay } from './UserDisplay';
 
-const pages = [{title:'Inicio Caso', route: "/inicio"}, {title:'Ej.Garantías', route: "/"}];
+const pages = [{title:'Crea Caso', route: "/inicio"}, {title:'Monitor', route: "/monitor"}, {title:'Garantías CF', route: "/service"}];
 
 export function ResponsiveAppBar() {
   const location = useLocation();
