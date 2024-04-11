@@ -8,6 +8,7 @@ export const ModalEstadoDatos = ({ isOpen, onClose, onSave, setCasosUpdated }) =
     onClose();
   };
 
+  //TODO: Sacar el boton Cancelar y reemplazarlo por uno en el form.
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle>Complete el formulario</DialogTitle>

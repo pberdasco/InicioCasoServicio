@@ -1,8 +1,8 @@
 import { useMaterialReactTable } from 'material-react-table';
-import { Box, IconButton} from "@mui/material";
+import { Box, IconButton, Tooltip} from "@mui/material";
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 
-export const useCasosItemsTableConfig = ({ columns, data }) => {
+export const useCasosItemsTableConfig = ({ columns, data, handleOpenModalFotos }) => {
     const table = useMaterialReactTable({
     columns,
     data,
@@ -16,9 +16,14 @@ export const useCasosItemsTableConfig = ({ columns, data }) => {
     renderRowActions: ({ row }) => (
       <Box>
         {/* //TODO: cambiar el console info por llamado a funcion que llame a la api de traer fotos y las muestre en una modal */}
-        <IconButton onClick={() => console.info('Photos: ', row.original)}>  
-          <PhotoCameraIcon />
-        </IconButton>
+        <Tooltip title="Ver fotos">
+            <IconButton onClick={() => {
+                console.info('Photos: ', row.original);
+                handleOpenModalFotos(row.original);
+            }}>  
+            <PhotoCameraIcon />
+            </IconButton>
+        </Tooltip>
       </Box>
     ),
     displayColumnDefOptions: {
