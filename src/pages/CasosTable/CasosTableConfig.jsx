@@ -1,6 +1,7 @@
 import { useMaterialReactTable } from 'material-react-table';
 
-import { CasoDetailTable } from './CasoDetailTable';
+import { CasosItemsTable } from './CasosItemsTable';
+// import { CasoDetailTable } from './CasoDetailTable';
 // import { setStatusDatos } from "./updateRow.js"
 
 import { RemoveCircleOutline, AddCircleOutline } from "@mui/icons-material";
@@ -40,7 +41,7 @@ export const useCasoTableConfig = ({ columns, data, setCasosUpdated, datosModalO
     data,
 
     // Detalles
-    renderDetailPanel: ({ row }) => <CasoDetailTable row={row} />,
+    renderDetailPanel: ({ row }) => <CasosItemsTable row={row} />,
     muiExpandButtonProps: ({ row }) => ({
         children: row.getIsExpanded() ? <RemoveCircleOutline /> : <AddCircleOutline />,
     }),
