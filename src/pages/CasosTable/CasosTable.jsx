@@ -10,56 +10,16 @@ import { Container, Box, Grid } from "@mui/material";
 import { useFormConfig } from "../Complements/useFormConfig";
 import { StdBlock } from "../../stdComponents/StdBlock";
 import { ModalEstadoDatos } from './ModalEstadoDatos';
-
-//MODAL
-import { setStatusDatos } from "./updateRow.js"
-const useDatosStatusModal = () => {
-  const [isDatosModalOpen, setIsDatosModalOpen] = useState(false);
-  const [statusUpdateInfo, setStatusUpdateInfo] = useState({ newStatus: 0, row: {} });
-
-  const datosModalOpen = () => setIsDatosModalOpen(true);
-  const datosModalClose = () => setIsDatosModalOpen(false);
-
-  const onSave = (data, setCasosUpdated) => {
-    console.group("CasosTable-On Save")
-    console.log("data:", data)
-    console.log("statusUdateInfo: ", statusUpdateInfo)
-    console.groupEnd()
-    setStatusDatos(statusUpdateInfo.newStatus, data.msg, statusUpdateInfo.row, setCasosUpdated);
-    datosModalClose(); // Cerrar el modal después de guardar
-  };
-
-  return { isDatosModalOpen, datosModalOpen, datosModalClose, onSave, setStatusUpdateInfo };
-};
-
-
+import { useDatosStatusModal } from './DatosStatusHook';
 
 
 export const CasosTable = () => {
   const {formWidth} = useFormConfig();
 
-  //PRUEBA MODAL
-  // const [isDatosModalOpen, setIsDatosModalOpen] = useState(false);
-  // const [statusUpdateInfo, setStatusUpdateInfo] = useState({newStatus:0, row:{}})
-
-  // const datosModalOpen = () => {
-  //   setIsDatosModalOpen(true)
-  // }
-  // const datosModalClose = () => {
-  //   setIsDatosModalOpen(false)
-  // }
-
-  // const onSave= (data) => { 
-  //   console.group("CasosTable-On Save")
-  //   console.log("data:", data)
-  //   console.log("statusUdateInfo: ", statusUpdateInfo)
-  //   console.groupEnd()
-  //   setStatusDatos(statusUpdateInfo.newStatus, data.msg, statusUpdateInfo.row, setCasosUpdated)
-  // }
 
   const { isDatosModalOpen, datosModalOpen, datosModalClose, onSave, setStatusUpdateInfo } = useDatosStatusModal();
 
-  const columns = useCasosColumn();        // podria ser una funcion normal en lugar de un customHook
+  const columns = useCasosColumn();        // columns ya viene memoizada desde el hook
   const [casos, setCasos] = useState([]);  // array de casos.
   //const [casoActual, setCasoActual] = useState({});     // ante acciones en la grilla, carga el caso Actual
   const [casosUpdated, setCasosUpdated] = useState({}); // caso de la fila modificada

@@ -58,10 +58,12 @@ export const useCasoTableConfig = ({ columns, data, setCasosUpdated, datosModalO
         },
     },
     initialState: {
+        density: 'compact',
         columnPinning: {
         left: ['mrt-row-expand'],
         right: ['mrt-row-actions'],
         },
+        columnVisibility: { fechaCarga: false },
     },
 
     // Color de cabecera de grilla

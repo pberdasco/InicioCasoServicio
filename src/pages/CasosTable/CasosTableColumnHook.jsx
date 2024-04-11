@@ -19,9 +19,26 @@ export const useCasosColumn = () => {
             sortingFn: 'datetime',
             Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),   //TODO: hay que pasarla a formato arg
             Header: ({ column }) => <em>{column.columnDef.header}</em>,
+            size: 100,
             muiFilterTextFieldProps: {
             sx: {
-                minWidth: '250px',
+                minWidth: '100px',
+            },
+            },
+          },
+          {
+            accessorFn: (row) => new Date(row.fechaAlta),
+            id: 'fechaCarga',
+            header: 'Carga',
+            filterVariant: 'date',
+            filterFn: 'lessThan',
+            sortingFn: 'datetime',
+            Cell: ({ cell }) => cell.getValue()?.toLocaleDateString(),   //TODO: hay que pasarla a formato arg
+            Header: ({ column }) => <em>{column.columnDef.header}</em>,
+            size: 100,
+            muiFilterTextFieldProps: {
+            sx: {
+                minWidth: '100px',
             },
             },
           },
@@ -49,6 +66,12 @@ export const useCasosColumn = () => {
                     
                 </Box>
               ),
+          },
+          {
+            accessorFn: (row) => `${row.cliente.apellido}, ${row.cliente.nombre}`, 
+            id: 'nombre', //id is still required when using accessorFn instead of accessorKey
+            header: 'Nombre',
+            size: 200,
           },
           {
             accessorKey: 'cliente.mail',
