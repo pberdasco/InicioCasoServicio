@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react';
 import { MaterialReactTable} from 'material-react-table';
 
+import { useModalFotos } from './ModalFotosHook';
 import { useCasosItemsColumn } from './CasosItemsTableColumnHook';
 import { useCasosItemsTableConfig } from './CasosItemsTableConfig';
 
@@ -10,17 +10,7 @@ import { ModalFotos } from './ModalFotos';
 
 export const CasosItemsTable = ({row}) => {
 
-    //* Para la modal de fotos
-    const [modalFotosOpen, setModalFotosOpen] = useState(false); // true muestra la modal
-    const [selectedRow, setSelectedRow] = useState(null);
-    const handleOpenModalFotos = (row) => {
-        setSelectedRow(row);
-        setModalFotosOpen(true)
-    }
-    const handleCloseModalFotos = () => {
-        setModalFotosOpen(false);
-        setSelectedRow(null);
-    }
+    const { modalFotosOpen, handleOpenModalFotos, handleCloseModalFotos, selectedRow } = useModalFotos();
 
     const columns = useCasosItemsColumn();        // columns ya viene memoizada desde el hook
     const table = useCasosItemsTableConfig({ columns, data: row.original.items, handleOpenModalFotos});

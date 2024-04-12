@@ -51,7 +51,6 @@ export const CasosTable = () => {
         
         </Box>
       </Container>
-      {/* PRUEBA MODAL */}
       <ModalEstadoDatos isOpen={isDatosModalOpen} onClose={datosModalClose} onSave={onSave} setCasosUpdated={setCasosUpdated}/>
     </>
   )

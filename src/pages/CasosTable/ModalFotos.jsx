@@ -1,12 +1,8 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Imagenes } from '../../apiAccess/imagenesApi';
 
-//! Mock
-// import imagen1 from "../../assets/Completar.png";
-// import imagen2 from '../../assets/Secuencia.png';
-
-const apiBaseUrl = 'http://192.168.78.103:5002/';
 
 export const ModalFotos = ({ isOpen, onClose, row }) => {
   const [productImage, setProductImage] = useState(null);
@@ -15,18 +11,11 @@ export const ModalFotos = ({ isOpen, onClose, row }) => {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        // TODO: descomentar despues de probar que llegue row
-        const productResponse = await fetch(apiBaseUrl + 'upload/getfile/' + row.fotoDestruccionLink);
-        const productImageData = await productResponse.blob();
-        setProductImage(URL.createObjectURL(productImageData));
+        const productImage = await Imagenes.getProductImage(row.fotoDestruccionLink);
+        setProductImage(productImage);
 
-        const invoiceResponse = await fetch(apiBaseUrl + 'upload/getfile/' + row.fotoFacturaLink);
-        const invoiceImageData = await invoiceResponse.blob();
-        setInvoiceImage(URL.createObjectURL(invoiceImageData));
-
-        //! Mock
-        // setProductImage(imagen1);
-        // setInvoiceImage(imagen2); 
+        const invoiceImage = await Imagenes.getInvoiceImage(row.fotoFacturaLink);
+        setInvoiceImage(invoiceImage);
 
       } catch (error) {
         console.error('Error fetching images:', error);
@@ -39,7 +28,8 @@ export const ModalFotos = ({ isOpen, onClose, row }) => {
   }, [isOpen, row.fotoDestruccionLink, row.fotoFacturaLink]);
 
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="lg">
+    // TODO: cambiar lg por xl si la pantalla es grande
+    <Dialog open={isOpen} onClose={onClose} maxWidth="lg" fullWidth={true}>  
       <DialogTitle>Fotos del reclamo</DialogTitle>
       <DialogContent>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -55,7 +45,12 @@ export const ModalFotos = ({ isOpen, onClose, row }) => {
             {invoiceImage && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <h4 style={{ textAlign: 'center' }}>Factura</h4>
-                <img src={invoiceImage} alt="Foto de la factura" style={{ maxWidth: '100%', marginBottom: '10px' }} />
+                {row.fotoFacturaLink.endsWith('.pdf') ? (
+                  <embed src={invoiceImage} type="application/pdf" width="100%" height="600px" />
+                  
+                ) : (
+                  <img src={invoiceImage} alt="Foto de la factura" style={{ maxWidth: '100%', marginBottom: '10px' }} />
+                )}
               </div>
             )}
           </div>
@@ -63,10 +58,9 @@ export const ModalFotos = ({ isOpen, onClose, row }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">
-          Cancelar
+          Cerrar
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
-
