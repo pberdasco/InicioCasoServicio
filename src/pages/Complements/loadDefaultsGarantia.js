@@ -40,7 +40,8 @@ export const loadDefaults = async (token, setValue, setCasoActual, formatDate) =
             const i = casoData.items[0]
             setValue("producto", {id: i.producto.id, idERP: i.producto.idERP, name: i.producto.nombre, tipo: i.producto.tipo})
             setValue("serie", i.serie);
-            // TODO: Los controles de fotoFactura y fotoProducto (file) no admiten recibir texto
+            // fotoFactura y fotoProducto estaran en el estado casoActual, de alli se pueden pasar a los controles correspondientes
+
             // TODO: buscar por que no anda cuando fInicio va perfecto
             // const f = formatDate(dayjs(i.fechaFactura))
             // console.log(f, typeof(f));

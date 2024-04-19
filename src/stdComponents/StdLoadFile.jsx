@@ -15,8 +15,10 @@ import { useState, useEffect } from "react";
 import { useFileUploader } from "./FileUploader"; 
 import { StdTakePhoto } from './StdTakePhoto';
 
-export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", name, control, size = "l", photo = true,   
-                              toolTip="Con los botones, seleccione un archivo con la imagen o tome una foto", storage, subDirectory = "" }) {
+export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", name, control, size = "l", 
+                              errors, helperText=" ",  photo = true, defaultFile = "", readOnly = false, 
+                              toolTip="Con los botones, seleccione un archivo con la imagen o tome una foto", storage, 
+                              subDirectory = "", validateAfterFn = null, setError, allowedTypes=["all"] }) {
     const inputSize = setSize(size);
 
     const [selectedFileName, setSelectedFileName] = useState("");
@@ -28,7 +30,12 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
 
     const { uploadFile, uploadBase64 } = useFileUploader(); 
 
+    useEffect(() => {
+        setSelectedFileName(defaultFile);
+    }, [defaultFile]);
+
     const handleFileChange = async (e) => {
+        if (readOnly) return;
         const file = e.target.files[0];
         setSelectedFileName(file ? file.name : "");
 
@@ -36,11 +43,31 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
             try {
                 const fileData = await uploadFile(file, subDirectory);
                 if (fileData.success) {
-                    setSelectedFileName(fileData.fileName);
-                    setShowSuccessAlert(true);
-                    storage.setFunc(storage.field, fileData.responseData.filename);
-                    if (storage.setState) storage.setState(fileData.responseData.filename)
-                } else {
+                    // si hay funcion de validacion afterLoad la ejecuta
+                    let validateAfterStatus = {ok: true, msg: ""};
+                    if (validateAfterFn) validateAfterStatus = await validateAfterFn(fileData.fileName);
+                    if (validateAfterStatus.ok) { // Validacion aprobada
+                        setSelectedFileName(fileData.fileName);
+                        setShowSuccessAlert(true);
+                        // guarda en el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado))
+                        storage.setFunc(storage.field, fileData.responseData.filename);
+                        // y eventualmente en el estado
+                        if (storage.setState) storage.setState(fileData.responseData.filename)
+                    } else { // Error de Validacion post upload
+                        setSelectedFileName("");
+                        setUploadError(validateAfterStatus.msg);
+                        // limpia el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado))
+                        storage.setFunc(storage.field, "");
+                        // y eventualmente limpia tambien el estado asociado
+                        console.log("Name:",name, "  Campo asociado:",storage.field)
+                        if (storage.setState) storage.setState("")
+                        setError(name, {
+                            type: 'custom',
+                            message: validateAfterStatus.msg,
+                        })
+                        console.log("Errors: ", errors, errors[name], errors[storage.field])
+                    }                    
+                } else {  // Error de Upload
                     setSelectedFileName("");
                     setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
                     storage.setFunc(storage.field, "");
@@ -87,7 +114,13 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
     }, [newPhoto, storage, uploadBase64])
 
     const handleTakePhoto = () => {
+        if (readOnly) return;
         setTakingPhoto(true);
+    }
+
+    const inputProps = {};
+    if (!allowedTypes.includes("all")) {
+        inputProps.accept = allowedTypes.join(",");
     }
 
     return (
@@ -101,10 +134,12 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                             type="file"
                             id={name}
                             style={{ display: 'none' }}
+                            disabled={readOnly}
                             onChange={async (e) => {
                                 await handleFileChange(e);
                                 field.onChange(e);
                             }}
+                            {...inputProps}
                         />
                                 
                         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -113,6 +148,7 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                                     label={label}
                                     value={selectedFileName}
                                     variant = "standard"
+                                    helperText={errors[name] ? errors[name]?.message : helperText}
                                     readOnly
                                     fullWidth
                                 />
@@ -124,6 +160,7 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                                     variant="contained"
                                     color="primary"
                                     component="span"
+                                    disabled={readOnly}
                                     startIcon={<CloudUploadIcon sx={{width: "28px", paddingLeft: "8px"}}/>}
                                 />
                                 </Tooltip>
@@ -135,6 +172,7 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                                     variant="contained"
                                     color="primary"
                                     component="span"
+                                    disabled={readOnly}
                                     startIcon={<AddAPhotoIcon sx={{width: "28px", paddingLeft: "8px"}}/>}
                                     onClick={handleTakePhoto}
                                 />
@@ -142,10 +180,7 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                             )}                         
                         </div>
 
-                        {takingPhoto && (
-                            // <StdPrueba takingPhoto={takingPhoto} setTakingPhoto={setTakingPhoto}/>
-                            <StdTakePhoto setImgSrc={setImgSrc} setNewPhoto={setNewPhoto} takingPhoto={takingPhoto} setTakingPhoto={setTakingPhoto}/>
-                        )}        
+                        {takingPhoto && (<StdTakePhoto setImgSrc={setImgSrc} setNewPhoto={setNewPhoto} takingPhoto={takingPhoto} setTakingPhoto={setTakingPhoto}/>)}        
 
                         {uploadError && (
                             <StdSnackAlert
@@ -175,14 +210,32 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
 StdLoadFile.propTypes = {
     label: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    control: PropTypes.object.isRequired, 
-    photo: PropTypes.bool,
+    control: PropTypes.object.isRequired,
+    errors: PropTypes.object.isRequired, 
+    photo: PropTypes.bool,                   // true si habilita boton de sacar foto o falso si solo levanta archivos del disco
+    helperText: PropTypes.string,
     toolTip: PropTypes.node,
+    readOnly: PropTypes.bool,
     size: PropTypes.oneOf(["s", "m", "l"]),
+    defaultFile: PropTypes.string,            // como un input file no admite recibir un texto, para mostrar si esta en update debe resivir deaultFile
     storage: PropTypes.shape({
         setFunc: PropTypes.func.isRequired,   // usualemente el setvalue del useForm
         field: PropTypes.string,              // nombre del campo donde se va a guardar el nombre de archivo capturado
         setState: PropTypes.func              // funcion opcional para cargar un estado con el nombre del archivo cargado
     }).isRequired,
-    subDirectory: PropTypes.string            // subdirectorio que se aplicara al directorio de grabación por defecto
+                                    // Ejemplos de storage:
+                                    // 1) storage en un campo adicional del form
+                                    // const storageProd = {
+                                    //     setFunc: setValue,
+                                    //     field: "hiddenFoto"}
+                                    // 2) storage en un campo adicional del form más en un estado del form
+                                    //     setFunc: setValue,
+                                    //     field: "hiddenFoto"
+                                    //     setState: setHiddenFoto}
+    subDirectory: PropTypes.string,           // subdirectorio que se aplicara al directorio de grabación por defecto
+    validateAfterFn: PropTypes.func,          // funcion async de validacion post carga (usa paramentro filename) permite llamada al server para trabajar sobre el archivo levantado
+                                              // la funcin debe devolver {ok: bool, msg: string }
+                                              // ejemplos: validar con IA o validar que una planilla excel tenga cierta info
+    setError: PropTypes.func,                 // funcion de react-hook-form para setear error en el campo cuando falla validateAfterFn  
+    allowedTypes: PropTypes.array             // array con tipos de archivos permitidos por defecto es all
 };

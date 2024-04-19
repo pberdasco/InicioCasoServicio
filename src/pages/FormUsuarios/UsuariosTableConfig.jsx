@@ -1,53 +1,48 @@
 import { useMaterialReactTable } from 'material-react-table';
 import { Box, IconButton, Tooltip} from "@mui/material";
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import EditIcon from '@mui/icons-material/Edit';
 
-export const useCasosItemsTableConfig = ({ columns, data, handleOpenModalFotos }) => {
+export const useUsuariosTableConfig = ({ columns, data, setCasosUpdated, datosModalOpen, setStatusUpdateInfo }) => {
     const table = useMaterialReactTable({
     columns,
     data,
-
-    enableColumnActions: false,
-    enablePagination: false,
-    enableTopToolbar: false,
-    enableBottomToolbar: false,
 
     enableRowActions: true,
     renderRowActions: ({ row }) => (
       <Box>
         <Tooltip title="Ver fotos">
             <IconButton onClick={() => {
-                handleOpenModalFotos(row.original);
+                console.info('Photos: ', row.original);
+                handleOpenModalFotos(row.original, "edit");
             }}>  
-            <PhotoCameraIcon />
+                <EditIcon />
             </IconButton>
         </Tooltip>
       </Box>
     ),
+
+    // Mostrar detalles a la izquierda y Acciones a la derecha
+    enableColumnActions: true,
     displayColumnDefOptions: {
         'mrt-row-actions': {
-        header: 'Acciones', 
+        header: 'Acciones',
+        size: 100, 
         },
     },
-
     initialState: {
-        columnPinning: {
-            right: ['mrt-row-actions'],
-            },
         density: 'compact',
+        columnPinning: {
+        right: ['mrt-row-actions'],
+        },
+        columnVisibility: { fechaCarga: false },
     },
 
     // Color de cabecera de grilla
     muiTableHeadCellProps: {
         sx: {
-        background: theme => theme.palette.secondary.light,
+        background: theme => theme.palette.primary.light,
         },
     },
-    muiBottomToolbarProps: {
-        sx: {
-            height: '5px',
-        }
-    }
     });
 
     return table;
