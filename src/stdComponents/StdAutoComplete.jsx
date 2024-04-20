@@ -9,14 +9,15 @@ import { setSize } from "./fieldSize";
 
 // En el campo guarda el registro completo del picklist. (ej. si el picklist es [{id,nombre,tipo}] devuelve el registro seleccionado {id,noombre,tipo})
 // el valor que toma el campo por defecto es lo que este en el campo del form (el campo debe tener como contenido, también un registro -no solo un id o key-)
-export function StdAutoComplete({label, name, control, 
+export function StdAutoComplete({label, name, control, aditionalOnChange,
                                 optionsArray, optionLabel = null, optionLabel2 = null,
                                 isOptionDisabled, validationRules, errors, errorText,
                                 helperText, toolTip, size, variant})
 {
     let inputSize = setSize(size);
 
-    //TODO: en algun momento ver si se puede hacer que se muestre algo en el picklist (ej cod+nombre+xx) y en el campo se muestre otra cosa (ej solo nombre)
+    //TODO: en algun momento ver si se puede hacer que se muestre algo en el picklist (ej cod+nombre+xx) y en el display del campo se muestre otra cosa (ej solo nombre)
+    //TODO: investigar tambien el uso de un valueprop que sea lo que recibe en el campo y lo que debe devolver (la diferencia con el punto de arriba es campo vs display-campo)
 
     function getOptionDisabled(option) {
         if (typeof isOptionDisabled === 'function') return isOptionDisabled(option);
@@ -51,7 +52,10 @@ export function StdAutoComplete({label, name, control,
                         {...field}
                         id={`AC-${name}`}
                         options={optionsArray}
-                        onChange={(event, values) => field.onChange(values)}
+                        onChange={(event, values) => {
+                            if (aditionalOnChange) aditionalOnChange(values);
+                            return field.onChange(values)}   //field.onChange() devuelve una promesa
+                        }
                         getOptionLabel={getOptionLabel}
                         getOptionDisabled={getOptionDisabled}
                         isOptionEqualToValue={isOptionEqualToValue}
@@ -70,11 +74,10 @@ export function StdAutoComplete({label, name, control,
                         )}
                     />
                 )}
-                name={name}
-                // onChange={([, optionObj]) =>  optionObj.id} 
+                name={name} 
                 control={control}
                 rules={validationRules}
-                // defaultValue={defaultValue}
+                defaultValue={null}  // Esto hay que dejarlo porque si no da error de cambio de controlled a unControlled...
                 />    
             </>
             </Tooltip>
@@ -86,7 +89,7 @@ StdAutoComplete.propTypes = {
     label: PropTypes.string.isRequired,                           // etiqueta del control
     name: PropTypes.string.isRequired,                            // identificador del campo para react-hook-form (tambien forma parte del id=`AC${name}`)
     control: PropTypes.object.isRequired,                         // directamente de useForm
-    optionsArray: PropTypes.array.isRequired,                     // array de opciones, puede ser de strings o de objetos (en este caso pasar valueProp y optionLabel)
+    optionsArray: PropTypes.array.isRequired,                     // array de opciones, puede ser de strings o de objetos (en este caso pasar optionLabel)
     optionLabel: PropTypes.string,                                // nombre de la propiedad a mostrar  (//TODO: quizas en el futuro cambiar a funcion para mostrar otras cosas)
     optionLabel2: PropTypes.string,                               // segundo nombre de campo para mostrar campo - campo, por ejemplo "FK9384 - Producto FK9384"
     isOptionDisabled: PropTypes.func,                             // funcion que devuelve false para los elementos a deshabilitar
@@ -96,12 +99,12 @@ StdAutoComplete.propTypes = {
     helperText: PropTypes.string,                                 // texto de ayuda que va en la linea de abajo cuando no esta mostrando un error
     toolTip: PropTypes.node,                                      // mensaje de ayuda que se muestra cuando el mouse pasa por arriba del campo
     size: PropTypes.oneOf(["s", "m", "l"]),                       // tamaño del campo: ver: import { setSize } from "./fieldSize";
-    variant: PropTypes.oneOf(["standard", "filled", "outlined"])
+    variant: PropTypes.oneOf(["standard", "filled", "outlined"]),
+    aditionalOnChange: PropTypes.func                             // funcion que se ejectura adicionalmente al proceso estandar entes del onChange. ej para setear algun estado en funcion del nuevo valor (values)
 }
 
 StdAutoComplete.defaultProps = {
     errorText: " ",
-    defaultValue: null,
     helperText: " ",
     toolTip: "",
     size: "m",

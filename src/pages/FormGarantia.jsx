@@ -199,6 +199,8 @@ const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias, cons
 }
 
 const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWidth, productos, consulta, casoActual}) => {
+    const [ubicacionSerie, setUbicacionSerie] = useState("");
+
     const storageFact = {
         setFunc: setValue,
         field: "hiddenFotoFactura"
@@ -208,15 +210,25 @@ const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWid
         setFunc: setValue,
         field: "hiddenFotoProducto"
     }
+
+    //TODO: ajustar esta funcion con la informacion correcta de las imagenes de ubicacion de nro de serie
+    function ubicacionSerieSegunProducto(values){
+        console.log("UbicacionSerie: ", ubicacionSerie);
+        if (values.tipoId == 2)
+            setUbicacionSerie("A");
+        else
+            setUbicacionSerie("B");
+    } 
     
+    // Setear los valores para los defaultFile de los StdLoadFile (no estan en campos => los toma de casoActual)
     const fotoProducto = (casoActual.items && casoActual.items[0].fotoDestruccionLink !== null) ? casoActual.items[0].fotoDestruccionLink : "";
     const fotoFactura = (casoActual.items && casoActual.items[0].fotoFactura !== null) ? casoActual.items[0].fotoFactura : "";
 
     return (
         <StdBlock formWidth={formWidth} title="Producto">         
             <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="tipo" optionLabel2="name"
-                             validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
-            <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
+                             validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta} aditionalOnChange={ubicacionSerieSegunProducto}/>
+            <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie ubicacionSerie={ubicacionSerie}/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
             
             <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} required={requiredMsg}
                         readOnly={consulta} defaultFile={fotoFactura} helperText='Archivos .png .jpeg .pdf o foto' allowedTypes={[".jpeg", ".png", ".pdf"]}/>
