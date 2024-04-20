@@ -1,5 +1,5 @@
 // TODO: Puntos a arreglar:
-// No funcionan defaultValue ni readOnly
+// No funcionan defaultValue 
 
 
 import PropTypes from 'prop-types';

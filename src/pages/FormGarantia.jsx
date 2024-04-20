@@ -34,8 +34,10 @@ import secuencia from "../assets/Secuencia.png";
 
 const validateFile = async (fileName) => {
     console.log("Validando: ", fileName);
-    return {ok: false, msg: `${fileName} no es una factura o ...`}
-    // return {ok: true, msg: `${fileName} esta Ok`}
+    if (fileName.startsWith('Fact'))
+        return {ok: true, msg: `${fileName} esta Ok`}       
+    else
+        return {ok: false, msg: `${fileName} no es una factura o ...`}    
 } 
 
 export const FormGarantia = () => {
@@ -78,6 +80,7 @@ export const FormGarantia = () => {
         register,
         setValue,
         setError,
+        clearErrors,
         formState: { errors },
     } = useForm();
 
@@ -115,7 +118,7 @@ export const FormGarantia = () => {
                              && (<InfoBlock formWidth={formWidth} casoActual={casoActual}/>)} 
                         <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} consulta={casoActual.modo == "Consulta"}/>
                         <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias} consulta={casoActual.modo == "Consulta"}/>
-                        <ProductBlock control={control} errors={errors} setError={setError} register={register} setValue={setValue} requiredMsg={requiredMsg} 
+                        <ProductBlock control={control} errors={errors} setError={setError} clearErrors={clearErrors} register={register} setValue={setValue} requiredMsg={requiredMsg} 
                                       formWidth={formWidth} productos={productos} casoActual={casoActual} consulta={casoActual.modo == "Consulta"}/>
 
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
@@ -195,7 +198,7 @@ const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias, cons
     )
 }
 
-const ProductBlock = ({control, errors, setError, register, setValue, requiredMsg, formWidth, productos, consulta, casoActual}) => {
+const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWidth, productos, consulta, casoActual}) => {
     const storageFact = {
         setFunc: setValue,
         field: "hiddenFotoFactura"
@@ -215,12 +218,12 @@ const ProductBlock = ({control, errors, setError, register, setValue, requiredMs
                             valueProp="id" validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
             <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
             
-            <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} 
+            <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} required={requiredMsg}
                         readOnly={consulta} defaultFile={fotoFactura} helperText='Archivos .png .jpeg .pdf o foto' allowedTypes={[".jpeg", ".png", ".pdf"]}/>
             <input type="hidden" {...register('hiddenFotoFactura')} />
             
-            <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} errors={errors} storage={storageProd} validateAfterFn={validateFile} 
-                         readOnly={consulta} defaultFile={fotoProducto} setError={setError} helperText='Archivos .png .jpeg o tomar foto' allowedTypes={[".jpeg", ".png"]}/>
+            <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} errors={errors} storage={storageProd} required={requiredMsg} validateAfterFn={validateFile} 
+                         readOnly={consulta} defaultFile={fotoProducto} helperText='Archivos .png .jpeg o tomar foto' allowedTypes={[".jpeg", ".png"]}/>
             <input type="hidden" {...register('hiddenFotoProducto')} />
 
             <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} readOnly={consulta}/>
@@ -271,6 +274,7 @@ ProductBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 
     setError: PropTypes.func.isRequired,           // setErrors de react-hook-form (para que lo reciba StdLoadFile)
+    clearErrors: PropTypes.func.isRequired,
     requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
     formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla 
     productos: PropTypes.array.isRequired,

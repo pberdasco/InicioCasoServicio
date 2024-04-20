@@ -15,21 +15,32 @@ import { useState, useEffect } from "react";
 import { useFileUploader } from "./FileUploader"; 
 import { StdTakePhoto } from './StdTakePhoto';
 
-export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", name, control, size = "l", 
-                              errors, helperText=" ",  photo = true, defaultFile = "", readOnly = false, 
-                              toolTip="Con los botones, seleccione un archivo con la imagen o tome una foto", storage, 
-                              subDirectory = "", validateAfterFn = null, setError, allowedTypes=["all"] }) {
-    const inputSize = setSize(size);
+function getFileExtension(file){
+    const fileParts = file.split('.');
+    return "." + fileParts[fileParts.length - 1];
+}
 
+//TODO: ver por que despues de arreglar un error de validacion no pasa automaticamente a color normal. Pasa recien con un submit.
+
+export function StdLoadFile({ name, control, label = "Seleccionar Archivo o tomar una foto",
+                                errors, validateAfterFn = null, required,           // errores
+                                photo = true, allowedTypes=["all"],                 // permite fotos? y que extensiones de archivo?
+                                helperText=" ", toolTip="Con los botones, seleccione un archivo o tome una foto",   
+                                storage, subDirectory = "",                         //en que campo auxiliar/estado del form guarda el nombre y en que subdirectorio del server guarda el archivo
+                                defaultFile = "", readOnly = false, size = "l" }) {
+    const inputSize = setSize(size);
     const [selectedFileName, setSelectedFileName] = useState("");
     const [showSuccessAlert, setShowSuccessAlert] = useState(false); 
     const [uploadError, setUploadError] = useState(null);
     const [imgSrc, setImgSrc] = useState("");
     const [newPhoto, setNewPhoto] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
+    const [errorState, setErrorState] = useState(required || "")
 
+    // Funciones de llamada a las apis de upload
     const { uploadFile, uploadBase64 } = useFileUploader(); 
 
+    // Valor por defecto en update
     useEffect(() => {
         setSelectedFileName(defaultFile);
     }, [defaultFile]);
@@ -39,6 +50,11 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
         const file = e.target.files[0];
         setSelectedFileName(file ? file.name : "");
 
+        if (!allowedTypes.includes(getFileExtension(file.name))) {
+            setErrorState(`Tipo de archivo inválido. Solo se permiten ${allowedTypes.join(', ')}.`);
+            return;
+        }
+
         if (file) {
             try {
                 const fileData = await uploadFile(file, subDirectory);
@@ -47,6 +63,7 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                     let validateAfterStatus = {ok: true, msg: ""};
                     if (validateAfterFn) validateAfterStatus = await validateAfterFn(fileData.fileName);
                     if (validateAfterStatus.ok) { // Validacion aprobada
+                        setErrorState("");
                         setSelectedFileName(fileData.fileName);
                         setShowSuccessAlert(true);
                         // guarda en el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado))
@@ -54,27 +71,20 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                         // y eventualmente en el estado
                         if (storage.setState) storage.setState(fileData.responseData.filename)
                     } else { // Error de Validacion post upload
-                        setSelectedFileName("");
                         setUploadError(validateAfterStatus.msg);
-                        // limpia el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado))
+                        // limpia el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado)) y eventualmente limpia tambien el estado asociado
                         storage.setFunc(storage.field, "");
-                        // y eventualmente limpia tambien el estado asociado
-                        console.log("Name:",name, "  Campo asociado:",storage.field)
-                        if (storage.setState) storage.setState("")
-                        setError(name, {
-                            type: 'custom',
-                            message: validateAfterStatus.msg,
-                        })
-                        console.log("Errors: ", errors, errors[name], errors[storage.field])
+                        if (storage.setState) storage.setState("");
+                        setErrorState(validateAfterStatus.msg);  
                     }                    
                 } else {  // Error de Upload
-                    setSelectedFileName("");
+                    setErrorState(fileData.error)
                     setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
                     storage.setFunc(storage.field, "");
                     if (storage.setState) storage.setState("")
                 }
             } catch (error) {
-                setSelectedFileName("");
+                setErrorState("Error al cargar el archivo")
                 setUploadError("Error al cargar el archivo"); 
                 storage.setFunc(storage.field, "");
                 if (storage.setState) storage.setState("")
@@ -87,18 +97,25 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
             try {
                 const fileData = await uploadBase64(imgSrc);
                 if (fileData.success) {
+                    //TODO: Implementar validateAfterFn:
+                    //     let validateAfterStatus = {ok: true, msg: ""};
+                    //     if (validateAfterFn) validateAfterStatus = await validateAfterFn(fileData.fileName);
+                    //     if (validateAfterStatus.ok) { // Validacion aprobada
+                    setErrorState("");
                     const fileName = fileData.fileName;
                     storage.setFunc(storage.field, fileName);
                     if (storage.setState) storage.setState(fileName)
                     setSelectedFileName(fileName);
                     setShowSuccessAlert(true);
                 } else {
+                    setErrorState(fileData.error)
                     setSelectedFileName("");
                     setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
                     storage.setFunc(storage.field, "");
                     if (storage.setState) storage.setState("")
                 }
             }catch (error){
+                setErrorState("Error al cargar la foto")
                 setSelectedFileName("");
                 setUploadError("Error al cargar la foto"); 
                 storage.setFunc(storage.field, "");
@@ -126,7 +143,7 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
     return (
         <Grid item {...inputSize}>          
             <Controller 
-                render={({ field }) => {
+                render={({ field, fieldState: {error}}) => {
                     return (
                         <>
                         <input
@@ -148,12 +165,13 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                                     label={label}
                                     value={selectedFileName}
                                     variant = "standard"
+                                    error={!!error}             
                                     helperText={errors[name] ? errors[name]?.message : helperText}
                                     readOnly
                                     fullWidth
                                 />
                             </Tooltip>
-                            <label htmlFor={name}>
+                            <label htmlFor={name}>         {/* Hace que el click en el boton Importar -que no tiene onclick- en realidad sea un click en el input file "name" */}
                                 <Tooltip title="Importar archivo" placement="top">
                                 <Button
                                     sx={{ marginLeft: '5px'}}
@@ -190,7 +208,7 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                                 severity="error"
                             />
                         )}
-                        {selectedFileName && (
+                        {(!uploadError && selectedFileName) && (
                             <StdSnackAlert  open={showSuccessAlert} 
                                 close= {() => setShowSuccessAlert(false)}
                                 text= {`Archivo cargado: ${selectedFileName}`}
@@ -202,6 +220,10 @@ export function StdLoadFile({ label = "Seleccionar Archivo o tomar una foto", na
                 name={name}
                 control={control}
                 defaultValue=""
+                rules={{validate: {noError: () => {
+                    console.log("Name: ", name, "   errorState: ", errorState); 
+                    return errorState == "" || errorState
+                }}}}
             />
         </Grid>
     );
@@ -236,6 +258,6 @@ StdLoadFile.propTypes = {
     validateAfterFn: PropTypes.func,          // funcion async de validacion post carga (usa paramentro filename) permite llamada al server para trabajar sobre el archivo levantado
                                               // la funcin debe devolver {ok: bool, msg: string }
                                               // ejemplos: validar con IA o validar que una planilla excel tenga cierta info
-    setError: PropTypes.func,                 // funcion de react-hook-form para setear error en el campo cuando falla validateAfterFn  
-    allowedTypes: PropTypes.array             // array con tipos de archivos permitidos por defecto es all
+    allowedTypes: PropTypes.array,            // array con tipos de archivos permitidos por defecto es all
+    required: PropTypes.string
 };

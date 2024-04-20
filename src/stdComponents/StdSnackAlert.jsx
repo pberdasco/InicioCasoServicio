@@ -7,7 +7,7 @@ return(
     <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         open={open}
-        autoHideDuration={3000}
+        autoHideDuration={5000}
         onClose={close}
     >
         <Alert
