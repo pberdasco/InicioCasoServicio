@@ -11,7 +11,7 @@ import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import { StdSnackAlert } from "./StdSnackAlert";
 import { setSize } from "./fieldSize";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useFileUploader } from "./FileUploader"; 
 import { StdTakePhoto } from './StdTakePhoto';
 
@@ -31,11 +31,13 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
     const inputSize = setSize(size);
     const [selectedFileName, setSelectedFileName] = useState("");
     const [showSuccessAlert, setShowSuccessAlert] = useState(false); 
-    const [uploadError, setUploadError] = useState(null);
+    const [uploadError, setUploadError] = useState(null);          // mensaje de error para el Alert
+    const [errorState, setErrorState] = useState(required || "")   // estado para el manejo de errores de react-hook-form
+    // estados para <StdTakePhoto />
     const [imgSrc, setImgSrc] = useState("");
     const [newPhoto, setNewPhoto] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
-    const [errorState, setErrorState] = useState(required || "")
+    
 
     // Funciones de llamada a las apis de upload
     const { uploadFile, uploadBase64 } = useFileUploader(); 
@@ -45,91 +47,73 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
         setSelectedFileName(defaultFile);
     }, [defaultFile]);
 
-    const handleFileChange = async (e) => {
+    const handleUpload = useCallback(async (fileOrBase64, isBase64) => {
         if (readOnly) return;
+    
+        try {
+            let fileData;
+            if (isBase64) {
+                fileData = await uploadBase64(fileOrBase64);
+            } else {
+                fileData = await uploadFile(fileOrBase64, subDirectory);
+            }
+    
+            if (fileData.success) {
+                let validateAfterStatus = { ok: true, msg: "" };
+                if (validateAfterFn) {
+                    validateAfterStatus = await validateAfterFn(fileData.originalFileName);
+                }
+    
+                if (validateAfterStatus.ok) { // Validación aprobada
+                    setErrorState("");
+                    storage.setFunc(storage.field, fileData.filename);
+                    if (storage.setState) storage.setState(fileData.filename);
+                    setSelectedFileName(fileData.originalFileName);
+                    setShowSuccessAlert(true);
+                } else { // Error de Validación post upload
+                    setUploadError(validateAfterStatus.msg);
+                    storage.setFunc(storage.field, "");
+                    if (storage.setState) storage.setState("");
+                    setErrorState(validateAfterStatus.msg);
+                }
+            } else { // Error de Upload
+                setErrorState(fileData.error);
+                setSelectedFileName("");
+                setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
+                storage.setFunc(storage.field, "");
+                if (storage.setState) storage.setState("");
+            }
+        } catch (error) {
+            setErrorState(isBase64 ? "Error al cargar la foto" : "Error al cargar el archivo");
+            setSelectedFileName("");
+            setUploadError("Error al cargar el archivo");
+            storage.setFunc(storage.field, "");
+            if (storage.setState) storage.setState("");
+        }
+    }, [readOnly, uploadBase64, uploadFile, subDirectory, validateAfterFn, storage]);
+    
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
         setSelectedFileName(file ? file.name : "");
-
+    
         if (!allowedTypes.includes(getFileExtension(file.name))) {
             setErrorState(`Tipo de archivo inválido. Solo se permiten ${allowedTypes.join(', ')}.`);
             return;
         }
         //TODO: Agregar const MAX_FILE_SIZE = 10485760; // 10 MB .....
-
+    
         if (file) {
-            try {
-                const fileData = await uploadFile(file, subDirectory);
-                if (fileData.success) {
-                    // si hay funcion de validacion afterLoad la ejecuta
-                    let validateAfterStatus = {ok: true, msg: ""};
-                    if (validateAfterFn) validateAfterStatus = await validateAfterFn(fileData.fileName);
-                    if (validateAfterStatus.ok) { // Validacion aprobada
-                        setErrorState("");
-                        setSelectedFileName(fileData.fileName);
-                        setShowSuccessAlert(true);
-                        // guarda en el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado))
-                        storage.setFunc(storage.field, fileData.responseData.filename);
-                        // y eventualmente en el estado
-                        if (storage.setState) storage.setState(fileData.responseData.filename)
-                    } else { // Error de Validacion post upload
-                        setUploadError(validateAfterStatus.msg);
-                        // limpia el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado)) y eventualmente limpia tambien el estado asociado
-                        storage.setFunc(storage.field, "");
-                        if (storage.setState) storage.setState("");
-                        setErrorState(validateAfterStatus.msg);  
-                    }                    
-                } else {  // Error de Upload
-                    setErrorState(fileData.error)
-                    setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
-                    storage.setFunc(storage.field, "");
-                    if (storage.setState) storage.setState("")
-                }
-            } catch (error) {
-                setErrorState("Error al cargar el archivo")
-                setUploadError("Error al cargar el archivo"); 
-                storage.setFunc(storage.field, "");
-                if (storage.setState) storage.setState("")
-            } 
+            await handleUpload(file);
         }
     };
-
+    
     useEffect(() => {
-        async function savePhoto(){
-            try {
-                const fileData = await uploadBase64(imgSrc);
-                if (fileData.success) {
-                    //TODO: Implementar validateAfterFn:
-                    //     let validateAfterStatus = {ok: true, msg: ""};
-                    //     if (validateAfterFn) validateAfterStatus = await validateAfterFn(fileData.fileName);
-                    //     if (validateAfterStatus.ok) { // Validacion aprobada
-                    setErrorState("");
-                    const fileName = fileData.fileName;
-                    storage.setFunc(storage.field, fileName);
-                    if (storage.setState) storage.setState(fileName)
-                    setSelectedFileName(fileName);
-                    setShowSuccessAlert(true);
-                } else {
-                    setErrorState(fileData.error)
-                    setSelectedFileName("");
-                    setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
-                    storage.setFunc(storage.field, "");
-                    if (storage.setState) storage.setState("")
-                }
-            }catch (error){
-                setErrorState("Error al cargar la foto")
-                setSelectedFileName("");
-                setUploadError("Error al cargar la foto"); 
-                storage.setFunc(storage.field, "");
-                if (storage.setState) storage.setState("")
-            }
-        }
-
         if (newPhoto) {
-            savePhoto();
-            setNewPhoto(false)
+            handleUpload(imgSrc, true);
+            setNewPhoto(false);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newPhoto, storage, uploadBase64])
+    }, [handleUpload, imgSrc, newPhoto, storage, uploadBase64]);
+    
 
     const handleTakePhoto = () => {
         if (readOnly) return;
@@ -221,10 +205,7 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
                 name={name}
                 control={control}
                 defaultValue=""
-                rules={{validate: {noError: () => {
-                    console.log("Name: ", name, "   errorState: ", errorState); 
-                    return errorState == "" || errorState
-                }}}}
+                rules={{validate: {noError: () => {return errorState == "" || errorState }}}}
             />
         </Grid>
     );
@@ -262,3 +243,97 @@ StdLoadFile.propTypes = {
     allowedTypes: PropTypes.array,            // array con tipos de archivos permitidos por defecto es all
     required: PropTypes.string
 };
+
+
+
+// const handleFileChange = async (e) => {
+//     if (readOnly) return;
+//     const file = e.target.files[0];
+//     setSelectedFileName(file ? file.name : "");
+
+//     if (!allowedTypes.includes(getFileExtension(file.name))) {
+//         setErrorState(`Tipo de archivo inválido. Solo se permiten ${allowedTypes.join(', ')}.`);
+//         return;
+//     }
+//     //TODO: Agregar const MAX_FILE_SIZE = 10485760; // 10 MB .....
+
+//     if (file) {
+//         try {
+//             const fileData = await uploadFile(file, subDirectory);
+//             if (fileData.success) {
+//                 // si hay funcion de validacion afterLoad la ejecuta
+//                 let validateAfterStatus = {ok: true, msg: ""};
+//                 if (validateAfterFn) validateAfterStatus = await validateAfterFn(fileData.originalFileName);
+//                 if (validateAfterStatus.ok) { // Validacion aprobada
+//                     setErrorState("");
+        
+//                     setSelectedFileName(fileData.originalFileName);
+//                     setShowSuccessAlert(true);
+//                     // guarda en el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado))
+//                     storage.setFunc(storage.field, fileData.filename);
+//                     // y eventualmente en el estado
+//                     if (storage.setState) storage.setState(fileData.filename)
+//                 } else { // Error de Validacion post upload
+//                     setUploadError(validateAfterStatus.msg);
+//                     // limpia el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado)) y eventualmente limpia tambien el estado asociado
+//                     storage.setFunc(storage.field, "");
+//                     if (storage.setState) storage.setState("");
+//                     setErrorState(validateAfterStatus.msg);  
+//                 }                    
+//             } else {  // Error de Upload
+//                 setErrorState(fileData.error)
+//                 setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
+//                 storage.setFunc(storage.field, "");
+//                 if (storage.setState) storage.setState("")
+//             }
+//         } catch (error) {
+//             setErrorState("Error al cargar el archivo")
+//             setUploadError("Error al cargar el archivo"); 
+//             storage.setFunc(storage.field, "");
+//             if (storage.setState) storage.setState("")
+//         } 
+//     }
+// };
+
+// useEffect(() => {
+//     async function savePhoto(){
+//         try {
+//             const fileData = await uploadBase64(imgSrc);
+//             if (fileData.success) {
+//                 let validateAfterStatus = {ok: true, msg: ""};
+//                 if (validateAfterFn) validateAfterStatus = await validateAfterFn(fileData.originalFileName);
+//                 if (validateAfterStatus.ok) { // Validacion aprobada
+//                     setErrorState("");
+//                     storage.setFunc(storage.field, fileData.filename);
+//                     if (storage.setState) storage.setState(fileData.filename)
+//                     setSelectedFileName(fileData.originalFileName);
+//                     setShowSuccessAlert(true);
+//                 } else { // Error de Validacion post upload
+//                     setUploadError(validateAfterStatus.msg);
+//                     // limpia el campo asociado oculto (setValue(campoOculto,nombreArchivoGuardado)) y eventualmente limpia tambien el estado asociado
+//                     storage.setFunc(storage.field, "");
+//                     if (storage.setState) storage.setState("");
+//                     setErrorState(validateAfterStatus.msg);  
+//                 }
+//             } else {
+//                 setErrorState(fileData.error)
+//                 setSelectedFileName("");
+//                 setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
+//                 storage.setFunc(storage.field, "");
+//                 if (storage.setState) storage.setState("")
+//             }
+//         }catch (error){
+//             setErrorState("Error al cargar la foto")
+//             setSelectedFileName("");
+//             setUploadError("Error al cargar la foto"); 
+//             storage.setFunc(storage.field, "");
+//             if (storage.setState) storage.setState("")
+//         }
+//     }
+
+//     if (newPhoto) {
+//         savePhoto();
+//         setNewPhoto(false)
+//     }
+// // eslint-disable-next-line react-hooks/exhaustive-deps
+// }, [newPhoto, storage, uploadBase64])

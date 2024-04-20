@@ -16,7 +16,7 @@ export function useFileUploader() {
     
             if (response.ok) {
                 const responseData = await response.json();
-                return { success: true, fileName: file.name, responseData };
+                return { success: true, originalFileName: file.name, fileName: responseData.filename, message: responseData.message, path: responseData.path };
             } else {
                 return{ success: false, error: "Error al cargar el archivo", statusCode: response.status};
             }
@@ -38,8 +38,8 @@ export function useFileUploader() {
             });
       
             if (response.ok) {
-                const result = await response.json();
-                return { success: true, fileName: result.filename, message: result.message };
+                const responseData = await response.json();
+                return { success: true, originalFileName: responseData.filename, fileName: responseData.filename, message: responseData.message, path: responseData.path };
             } else {
                 return { success: false, error: 'Error al guardar la imagen', statusCode: response.status };
             }
