@@ -7,24 +7,21 @@ import { Controller } from "react-hook-form";
 
 import { setSize } from "./fieldSize";
 
-
+// En el campo guarda el registro completo del picklist. (ej. si el picklist es [{id,nombre,tipo}] devuelve el registro seleccionado {id,noombre,tipo})
+// el valor que toma el campo por defecto es lo que este en el campo del form (el campo debe tener como contenido, también un registro -no solo un id o key-)
 export function StdAutoComplete({label, name, control, 
                                 optionsArray, optionLabel = null, optionLabel2 = null,
                                 isOptionDisabled, validationRules, errors, errorText,
-                                defaultValue, helperText, toolTip, size, variant})
+                                helperText, toolTip, size, variant})
 {
     let inputSize = setSize(size);
+
+    //TODO: en algun momento ver si se puede hacer que se muestre algo en el picklist (ej cod+nombre+xx) y en el campo se muestre otra cosa (ej solo nombre)
 
     function getOptionDisabled(option) {
         if (typeof isOptionDisabled === 'function') return isOptionDisabled(option);
         return false;
     }
-
-    // function getOptionLabel(option){
-    //     if (!optionLabel) return option.label ?? option;
-    //     // if (valueProp) return `${option[valueProp]} - ${option[optionLabel]}`
-    //     return option[optionLabel] ?? option;
-    // }
 
     function getOptionLabel(option){
         if (!optionLabel && !optionLabel2) {
@@ -44,11 +41,6 @@ export function StdAutoComplete({label, name, control,
         return option[optionLabel].includes(valor);
     }
 
-    // function getRenderOption(option){
-    //     if (valueProp &&  optionLabel) return <div key={option[valueProp]}>{`${option[valueProp]} - ${option[optionLabel]}`}</div>;
-    //     return <div key={option}>option</div>
-    // }
-
     return (
         <Grid item {...inputSize}>
             <Tooltip title={toolTip} placement="top">
@@ -65,7 +57,6 @@ export function StdAutoComplete({label, name, control,
                         isOptionEqualToValue={isOptionEqualToValue}
                         autoHighlight
                         autoSelect
-                        // renderOption={getRenderOption}    //TODO: tratar de habilitar mostrar en el desplegable mas que solo el getOptionLabel.
                         renderInput={(params) => (
                             <TextField
                                 {...params}
@@ -80,10 +71,10 @@ export function StdAutoComplete({label, name, control,
                     />
                 )}
                 name={name}
-                onChange={([, optionObj]) =>  optionObj.id}  //TODO: esto parece que nunca ejecuta. Seria bueno usarlo para devolver el id indicado por valueProp
+                // onChange={([, optionObj]) =>  optionObj.id} 
                 control={control}
                 rules={validationRules}
-                defaultValue={defaultValue}
+                // defaultValue={defaultValue}
                 />    
             </>
             </Tooltip>
@@ -102,14 +93,11 @@ StdAutoComplete.propTypes = {
     validationRules: PropTypes.object.isRequired,                 // reglas de validacion segun react-hook-form {required: "campo requerido", validate: {funcValidacion}}
     errors: PropTypes.object.isRequired,                          // directamente el errors del formState del useForm
     errorText: PropTypes.string,                                  // si se quiere un error generico en lugar de adecuados por las reglas de validacion
-    defaultValue: PropTypes.any,                                  // valor por defecto.... OJO quizas no hay que usar esto, van los del useForm. !!!//TODO: Probar!!!
     helperText: PropTypes.string,                                 // texto de ayuda que va en la linea de abajo cuando no esta mostrando un error
     toolTip: PropTypes.node,                                      // mensaje de ayuda que se muestra cuando el mouse pasa por arriba del campo
     size: PropTypes.oneOf(["s", "m", "l"]),                       // tamaño del campo: ver: import { setSize } from "./fieldSize";
     variant: PropTypes.oneOf(["standard", "filled", "outlined"])
 }
-
-//TODO: ver si agregar valueProp: PropTypes.any,   // nombre de la propiedad identificadora del registro (cuando es un objeto)
 
 StdAutoComplete.defaultProps = {
     errorText: " ",

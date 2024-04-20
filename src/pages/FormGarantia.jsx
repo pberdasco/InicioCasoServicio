@@ -191,7 +191,7 @@ const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias, cons
         <StdBlock formWidth={formWidth} title="Dirección">
             <StdTextInput label="Calle y número" name="calle" control={control} errors={errors} toolTip="Ingrese el domicilio de entrega" 
                             helperText="Ingresar calle, numero (mas piso y dpto de corresponder)" validationRules={{required: requiredMsg}} size="l" readOnly={consulta}/>    
-            <StdAutoComplete label="Provincia" name="provincia" control={control} optionsArray={provincias} optionLabel="name" valueProp="id" validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
+            <StdAutoComplete label="Provincia" name="provincia" control={control} optionsArray={provincias} optionLabel="name" validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
             <StdTextInput label="Localidad" name="localidad" control={control} errors={errors} validationRules={{required: requiredMsg}} readOnly={consulta}/>
             <StdTextInput label="Codigo Postal" name="codPostal" control={control} errors={errors} validationRules={{required: requiredMsg}} readOnly={consulta}/>           
         </StdBlock>
@@ -215,7 +215,7 @@ const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWid
     return (
         <StdBlock formWidth={formWidth} title="Producto">         
             <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="tipo" optionLabel2="name"
-                            valueProp="id" validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
+                             validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta}/>
             <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
             
             <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} required={requiredMsg}

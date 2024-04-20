@@ -54,6 +54,7 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
             setErrorState(`Tipo de archivo inválido. Solo se permiten ${allowedTypes.join(', ')}.`);
             return;
         }
+        //TODO: Agregar const MAX_FILE_SIZE = 10485760; // 10 MB .....
 
         if (file) {
             try {
