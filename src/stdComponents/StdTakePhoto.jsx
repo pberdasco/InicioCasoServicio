@@ -26,9 +26,9 @@ export function StdTakePhoto({setNewPhoto, setImgSrc, takingPhoto, setTakingPhot
         setPhoto("");
     };
 
-    const finishTakingPhoto = () => {
+    const finishTakingPhoto = (graba) => {
         if (photo !== "") setImgSrc(photo);
-        setNewPhoto(true);
+        if (graba) setNewPhoto(true);
         setTakingPhoto(false);
     }
 
@@ -67,7 +67,8 @@ export function StdTakePhoto({setNewPhoto, setImgSrc, takingPhoto, setTakingPhot
                             {photo ? (
                                 <>
                                 <Button variant="contained" color="primary" type="button" size="large" onClick={retake}>Nueva</Button>
-                                <Button variant="contained" color="primary" type="button" size="large" onClick={finishTakingPhoto}>Salir</Button>
+                                <Button variant="contained" color="primary" type="button" size="large" onClick={() => finishTakingPhoto(false)}>Salir</Button>
+                                <Button variant="contained" color="primary" type="button" size="large" onClick={() => finishTakingPhoto(true)}>Grabar</Button>
                                 </>
                             ) : (<>
                                 <Button variant="contained" color="primary" type="button" size="large" onClick={capture}>Sacar Foto</Button> 

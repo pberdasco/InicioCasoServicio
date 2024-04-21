@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 //TODO: imagen correspondiente para buscar el nro de serie
 export function DondeSerie({ubicacionSerie}){
     let imagen = "/DondeSerie.png";
-    if (ubicacionSerie == "A") imagen = "/DondeSerieTosta.png";
+    if (ubicacionSerie == "A") imagen = "/DondeSerieMicrocomp.png";
+    if (ubicacionSerie == "B") imagen = "/DondeSerieTosta.png";
 
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center',

@@ -23,6 +23,7 @@ import { FormAgradecimiento } from "./FormAgradecimiento";
 import { FormError} from "./FormError";
 
 //* de Apis y Utils
+import { AI } from '../apiAccess/aiApi';
 import { Caso } from "../apiAccess/casoApi";
 import { Producto } from "../apiAccess/productoApi";
 import { Provincia } from "../apiAccess/provinciaApi";
@@ -31,14 +32,6 @@ import { loadDefaults } from './Complements/loadDefaultsGarantia';
 
 import completar from "../assets/Completar.png";
 import secuencia from "../assets/Secuencia.png";
-
-const validateFile = async (fileName) => {
-    console.log("Validando: ", fileName);
-    if (fileName.startsWith('Fact'))
-        return {ok: true, msg: `${fileName} esta Ok`}       
-    else
-        return {ok: false, msg: `${fileName} no es una factura o ...`}    
-} 
 
 export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
@@ -51,6 +44,17 @@ export const FormGarantia = () => {
     const [productos, setProductos] = useState([]);      // array picklist de productos
     const [provincias, setProvincias] = useState([]);    // array picklist de provincias
     const [errorMsg, setErrorMsg] = useState("");        // Indica si estoy en una situacion de error para desplegar pantalla de error
+    const [validacionFactura, setValidacionFactura] = useState({})
+
+    // Funcion para validar facturas. 
+    // Aporta la respuesta a StdLoadFile y 
+    // setea el estado validacionFactura para que mas tarde se pueda grabar
+    const validateFile = async (serverFileName, fileName) => {
+        const respuesta = AI.checkFactura(serverFileName, fileName);
+        respuesta.serverFileName = serverFileName;
+        setValidacionFactura(respuesta);
+        return respuesta
+    } 
 
     //* Carga de defaults y picklists + casoActual
     useEffect(() => {
@@ -86,7 +90,7 @@ export const FormGarantia = () => {
 
     //* Grabación y envio de mail al completar el form
     const onSubmit = async (data) => {
-        const casoGrabado = await Caso.Update(data, casoActual, setCasoActual);
+        const casoGrabado = await Caso.Update(data, casoActual, setCasoActual, validacionFactura); //TODO: falta en casoGrabado grabar validacionFactura
         if (casoGrabado.status){
             setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
             setSubmit(-1);
@@ -119,7 +123,7 @@ export const FormGarantia = () => {
                         <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} consulta={casoActual.modo == "Consulta"}/>
                         <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias} consulta={casoActual.modo == "Consulta"}/>
                         <ProductBlock control={control} errors={errors} setError={setError} clearErrors={clearErrors} register={register} setValue={setValue} requiredMsg={requiredMsg} 
-                                      formWidth={formWidth} productos={productos} casoActual={casoActual} consulta={casoActual.modo == "Consulta"}/>
+                                      formWidth={formWidth} productos={productos} casoActual={casoActual} validateFile={validateFile} consulta={casoActual.modo == "Consulta"}/>
 
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
                         {casoActual.modo !== "Consulta" && (<StdSubmitButton label="Enviar" size="s"/>)}
@@ -198,7 +202,7 @@ const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias, cons
     )
 }
 
-const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWidth, productos, consulta, casoActual}) => {
+const ProductBlock = ({control, errors, register, setValue, clearErrors, requiredMsg, formWidth, productos, consulta, casoActual, validateFile}) => {
     const [ubicacionSerie, setUbicacionSerie] = useState("");
 
     const storageFact = {
@@ -212,12 +216,14 @@ const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWid
     }
 
     //TODO: ajustar esta funcion con la informacion correcta de las imagenes de ubicacion de nro de serie
+    //Eventualmente en la tabla de tipos podria ponerse el nombre del archivo
     function ubicacionSerieSegunProducto(values){
-        console.log("UbicacionSerie: ", ubicacionSerie);
-        if (values.tipoId == 2)
+        if (values.tipoId == 1 || values.tipoId == 2)  // audifonos y microcomponentes
             setUbicacionSerie("A");
-        else
+        else if (values.tipoId == 3 || values.tipoId == 4)  // aspiradoras y ...
             setUbicacionSerie("B");
+        else                                            // otros
+            setUbicacionSerie("C");
     } 
     
     // Setear los valores para los defaultFile de los StdLoadFile (no estan en campos => los toma de casoActual)
@@ -230,11 +236,11 @@ const ProductBlock = ({control, errors, register, setValue, requiredMsg, formWid
                              validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta} aditionalOnChange={ubicacionSerieSegunProducto}/>
             <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie ubicacionSerie={ubicacionSerie}/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
             
-            <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} required={requiredMsg}
+            <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} required={requiredMsg} validateAfterFn={validateFile} clearErrors={clearErrors}
                         readOnly={consulta} defaultFile={fotoFactura} helperText='Archivos .png .jpeg .pdf o foto' allowedTypes={[".jpeg", ".png", ".pdf"]}/>
             <input type="hidden" {...register('hiddenFotoFactura')} />
             
-            <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} errors={errors} storage={storageProd} required={requiredMsg} validateAfterFn={validateFile} 
+            <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} errors={errors} storage={storageProd} required={requiredMsg} clearErrors={clearErrors}
                          readOnly={consulta} defaultFile={fotoProducto} helperText='Archivos .png .jpeg o tomar foto' allowedTypes={[".jpeg", ".png"]}/>
             <input type="hidden" {...register('hiddenFotoProducto')} />
 
@@ -293,7 +299,8 @@ ProductBlock.propTypes = {
     register: PropTypes.func.isRequired,          // register de react-hook-form
     setValue: PropTypes.func.isRequired,          // setValue de react-hook-form
     consulta: PropTypes.bool,
-    casoActual: PropTypes.object
+    casoActual: PropTypes.object,
+    validateFile: PropTypes.func
 }
 AlertBlock.propTypes = {
     submit: PropTypes.number.isRequired,           

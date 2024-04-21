@@ -2,12 +2,12 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
 // eslint-disable-next-line react/prop-types
-export function StdSnackAlert({open, close, text, severity}){
+export function StdSnackAlert({open, close, text, severity, autoHide=true}){
 return(
     <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         open={open}
-        autoHideDuration={5000}
+        autoHideDuration={autoHide ? 5000 : null}
         onClose={close}
     >
         <Alert

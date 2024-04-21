@@ -23,21 +23,20 @@ function getFileExtension(file){
 //TODO: ver por que despues de arreglar un error de validacion no pasa automaticamente a color normal. Pasa recien con un submit.
 
 export function StdLoadFile({ name, control, label = "Seleccionar Archivo o tomar una foto",
-                                errors, validateAfterFn = null, required,           // errores
-                                photo = true, allowedTypes=["all"],                 // permite fotos? y que extensiones de archivo?
+                                errors, validateAfterFn = null, required, clearErrors,     // errores
+                                photo = true, allowedTypes=["all"],                        // permite fotos? y que extensiones de archivo?
                                 helperText=" ", toolTip="Con los botones, seleccione un archivo o tome una foto",   
                                 storage, subDirectory = "",                         //en que campo auxiliar/estado del form guarda el nombre y en que subdirectorio del server guarda el archivo
                                 defaultFile = "", readOnly = false, size = "l" }) {
     const inputSize = setSize(size);
     const [selectedFileName, setSelectedFileName] = useState("");
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false); 
-    const [uploadError, setUploadError] = useState(null);          // mensaje de error para el Alert
+    const [alert, setAlert] = useState({ status: "None", msg: "" });
     const [errorState, setErrorState] = useState(required || "")   // estado para el manejo de errores de react-hook-form
     // estados para <StdTakePhoto />
     const [imgSrc, setImgSrc] = useState("");
     const [newPhoto, setNewPhoto] = useState(false);
     const [takingPhoto, setTakingPhoto] = useState(false);
-    
+     
 
     // Funciones de llamada a las apis de upload
     const { uploadFile, uploadBase64 } = useFileUploader(); 
@@ -59,19 +58,21 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
             }
     
             if (fileData.success) {
-                let validateAfterStatus = { ok: true, msg: "" };
+                let validateAfterStatus = { status: "Ok", msg: "" };
                 if (validateAfterFn) {
-                    validateAfterStatus = await validateAfterFn(fileData.originalFileName);
+                    validateAfterStatus = await validateAfterFn(fileData.fileName, fileData.originalFileName);
                 }
-    
-                if (validateAfterStatus.ok) { // Validación aprobada
+    console.log(isBase64, validateAfterStatus)
+                if (validateAfterStatus.status != "Error") { // Validación aprobada
+                    clearErrors(name);  // no deberia hacer falta pero igual no soluciona el tema
                     setErrorState("");
                     storage.setFunc(storage.field, fileData.filename);
                     if (storage.setState) storage.setState(fileData.filename);
                     setSelectedFileName(fileData.originalFileName);
-                    setShowSuccessAlert(true);
+                    setAlert({ status: validateAfterStatus.status, msg: validateAfterStatus.msg })
                 } else { // Error de Validación post upload
-                    setUploadError(validateAfterStatus.msg);
+                    setSelectedFileName(fileData.originalFileName);
+                    setAlert({ status: "Error", msg: validateAfterStatus.msg })
                     storage.setFunc(storage.field, "");
                     if (storage.setState) storage.setState("");
                     setErrorState(validateAfterStatus.msg);
@@ -79,24 +80,25 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
             } else { // Error de Upload
                 setErrorState(fileData.error);
                 setSelectedFileName("");
-                setUploadError(`(${fileData.statusCode}) - ${fileData.error}`);
+                setAlert({ status: "Error", msg: `(${fileData.statusCode}) - ${fileData.error}` })
                 storage.setFunc(storage.field, "");
                 if (storage.setState) storage.setState("");
             }
         } catch (error) {
             setErrorState(isBase64 ? "Error al cargar la foto" : "Error al cargar el archivo");
             setSelectedFileName("");
-            setUploadError("Error al cargar el archivo");
+            setAlert({ status: "Error", msg: "Error al cargar el archivo" })
             storage.setFunc(storage.field, "");
             if (storage.setState) storage.setState("");
         }
-    }, [readOnly, uploadBase64, uploadFile, subDirectory, validateAfterFn, storage]);
+    }, [readOnly, uploadBase64, uploadFile, subDirectory, validateAfterFn, clearErrors, name, storage]);
     
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         setSelectedFileName(file ? file.name : "");
     
         if (!allowedTypes.includes(getFileExtension(file.name))) {
+            setAlert({ status: "Error", msg: `Tipo de archivo inválido. Solo se permiten ${allowedTypes.join(', ')}.` })
             setErrorState(`Tipo de archivo inválido. Solo se permiten ${allowedTypes.join(', ')}.`);
             return;
         }
@@ -130,7 +132,7 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
             <Controller 
                 render={({ field, fieldState: {error}}) => {
                     return (
-                        <>
+                    <>
                         <input
                             {...field}
                             type="file"
@@ -184,22 +186,14 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
                         </div>
 
                         {takingPhoto && (<StdTakePhoto setImgSrc={setImgSrc} setNewPhoto={setNewPhoto} takingPhoto={takingPhoto} setTakingPhoto={setTakingPhoto}/>)}        
-
-                        {uploadError && (
-                            <StdSnackAlert
-                                open={Boolean(uploadError)}
-                                close={() => setUploadError(null)}
-                                text={`${label} - ${uploadError}`}
-                                severity="error"
-                            />
-                        )}
-                        {(!uploadError && selectedFileName) && (
-                            <StdSnackAlert  open={showSuccessAlert} 
-                                close= {() => setShowSuccessAlert(false)}
-                                text= {`Archivo cargado: ${selectedFileName}`}
-                                severity="success"/>
-                        )}
-                        </>
+               
+                        <StdSnackAlert
+                            open={alert.status !== "None"}
+                            close={() => setAlert({ status: "None", msg: "" })}
+                            text={alert.status === "Error" ? `${alert.msg}` : alert.msg ? `${alert.msg} - ha sido cargado` : `${selectedFileName} - ha sido cargado`} 
+                            severity={alert.status === "Ok" ? "success" : alert.status === "Warn"? "warning" : "error"}
+                        />           
+                    </>
                     );
                 }}
                 name={name}
@@ -237,11 +231,12 @@ StdLoadFile.propTypes = {
                                     //     field: "hiddenFoto"
                                     //     setState: setHiddenFoto}
     subDirectory: PropTypes.string,           // subdirectorio que se aplicara al directorio de grabación por defecto
-    validateAfterFn: PropTypes.func,          // funcion async de validacion post carga (usa paramentro filename) permite llamada al server para trabajar sobre el archivo levantado
-                                              // la funcin debe devolver {ok: bool, msg: string }
+    validateAfterFn: PropTypes.func,          // funcion async de validacion post carga (usa paramentro filename y originalFileName) permite llamada al server para trabajar sobre el archivo levantado
+                                              // la funcin debe devolver {status: "Ok"/"Warn"/"Error", msg: string }  Ok y Warn no marcan error en react-hook-form
                                               // ejemplos: validar con IA o validar que una planilla excel tenga cierta info
     allowedTypes: PropTypes.array,            // array con tipos de archivos permitidos por defecto es all
-    required: PropTypes.string
+    required: PropTypes.string,
+    clearErrors: PropTypes.func
 };
 
 
