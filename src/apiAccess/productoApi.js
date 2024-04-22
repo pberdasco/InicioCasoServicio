@@ -1,10 +1,10 @@
-const apiBaseUrl = `http://192.168.78.103:5001/`;
+import { apiBaseUrl_db } from './apiUrls';
 
 export class Producto {
 
     static async GetAll(){
         try {
-            const productoResponse = await fetch(`${apiBaseUrl}productos`);
+            const productoResponse = await fetch(`${apiBaseUrl_db}productos`);
             if (productoResponse.ok) {
                 const productoData = await productoResponse.json();
                 const productos = productoData.map(producto => {

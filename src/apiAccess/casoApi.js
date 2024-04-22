@@ -3,14 +3,13 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import 'dayjs/locale/es';
 
 import { CasoModel } from './casoModel';
-
-const apiBaseUrl = `http://192.168.78.103:5001/`;
+import { apiBaseUrl_db } from './apiUrls';
 
 export class Caso {
     // Busca al cliente por mail y si no lo encuentra lo crea
     static async searchOrCreateCliente(casoData) {
         try {
-            const clienteResponse = await fetch(`${apiBaseUrl}clientes/email/${casoData.mail}`);
+            const clienteResponse = await fetch(`${apiBaseUrl_db}clientes/email/${casoData.mail}`);
             if (clienteResponse.ok) {
                 const clienteData = await clienteResponse.json();
                 return clienteData.id;
@@ -28,7 +27,7 @@ export class Caso {
     // Crea un cliente con datos mínimos
     static async createNewCliente(casoData) {
         try {
-            const nuevoClienteResponse = await fetch(`${apiBaseUrl}clientes/`, {
+            const nuevoClienteResponse = await fetch(`${apiBaseUrl_db}clientes/`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -55,7 +54,7 @@ export class Caso {
     static async createCaso(casoData, clienteId) {
         try {
             const fInicioSQLFormat = dayjs(casoData.fInicio, 'D-M-YYYY').format('YYYY-MM-DD');
-            const casoResponse = await fetch(`${apiBaseUrl}casos`, {
+            const casoResponse = await fetch(`${apiBaseUrl_db}casos`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -99,7 +98,7 @@ export class Caso {
 
     static async GetByToken(token){
         try {
-            const casoResponse = await fetch(`${apiBaseUrl}casos/token/${token}`);
+            const casoResponse = await fetch(`${apiBaseUrl_db}casos/token/${token}`);
             if (casoResponse.ok) {
                 const casoData = await casoResponse.json();
                 return new CasoModel(casoData);
@@ -115,76 +114,28 @@ export class Caso {
         }
     }
 
-    // Arma el body para llamar al endpoint PUT ../casos/all
-    static bodyUpdate(casoActual, casoData){
-        const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
-        const body = 
-            {caso: JSON.stringify({    
-                //clienteId: casoActual.cliente.id,  //no deberia modificarso
-                //fechaAlta: fInicioSQLFormat,   //no deberia modificarse
-                //fechaInicio y fechaFin deben seguir en blanco hasta statusdatosok
-                //idCRM: casoData.casoNro,       //no deberia modificarse
-                fechaCarga: fCargaSQLFormat,
-                statusDatosID: 2, // lo pone en revision 
-                estadoID: 1, // Inicial
-                dirCalle: casoData.calle,
-                dirNumero: 0, //TODO: separar los campos
-                dirProvincia: casoData.provincia.id,
-                dirLocalidad: casoData.localidad,
-                dirCodigoPostal: casoData.codPostal,
-                fallaStdId: 0,  // falla no definida aun
-                tokenLink: casoActual.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
-
-                items: [{
-                    //id: se define al grabarlo
-                    //casoId: lo pone la api
-                    fila: 1,
-                    productoId: casoData.producto.id,
-                    tipoProductoId: casoData.producto.tipoId,
-                    //color pareceria que no va mas
-                    serie: casoData.serie,
-                    fechaFactura: casoData.fechaFacturaCompra,
-                    nroFactura: casoData.nroFacturaCompra,
-                    estadoID: 1,
-                    fallaCliente: casoData.falla,
-                    fallaStdId: 5, // 5= no definida aun
-                    fotoDestuccionLink: casoData.hiddenFotoProducto,
-                    fotoFacturaLink: casoData.hiddenFotoFactura,
-                }]
-            }),      
-            cliente: JSON.stringify({
-                nombre: casoData.nombre,
-                apellido: casoData.apellido,
-                telefono: casoData.telefono,
-                tipoDoc: "D",
-                documento: casoData.dni,
-                dirCalle: casoData.calle,
-                dirProvincia: casoData.provincia.id,
-                dirLocalidad: casoData.localidad,
-                dirCodigoPostal: casoData.codPostal,
-            })
-        }
-        return body;
-    }
-
-    static async Update(casoData, casoActual, setCasoActual){
+    static async Update(formData, casoActual, setCasoActual, validacionFactura){
         try {
-            const bodyUpdate = Caso.bodyUpdate(casoActual, casoData);
+            // const bodyUpdate = CasoModel.buildCasoUpdateBody(casoActual, casoData);
 
-            const casoResponse = await fetch(`${apiBaseUrl}casos/all/${casoActual.id}`, {
+            const casoResponse = await fetch(`${apiBaseUrl_db}casos/all/${casoActual.id}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: bodyUpdate.caso,
+                body: CasoModel.buildCasoUpdateBody(casoActual, formData),
             });
             if (casoResponse.ok) {
-                const clienteResponse = await fetch(`${apiBaseUrl}clientes/${casoActual.cliente.id}`, {
+                const clienteResponse = await fetch(`${apiBaseUrl_db}clientes/${casoActual.cliente.id}`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
-                    body: bodyUpdate.cliente,
+                    body: CasoModel.buildClienteUpdateBody(formData),
                 });
                 if (clienteResponse.ok) {
                     const casoResult = await casoResponse.json();
                     casoResult.modo = "Cargado";
+//! DEBUG
+const clienteResult = await clienteResponse.json();
+console.log("Update: ", casoActual, validacionFactura)
+console.log("Grabado: ", casoResult, clienteResult);
                     setCasoActual(casoResult);
                     return "Ok";
                     // const clienteResult = await clienteResponse.json();
@@ -214,7 +165,7 @@ export class Caso {
     //TODO: unificar con Update, haciendo que update no cree los datos que no le lleguen y que haga validaciones
     static async partialUpdate(casoId, partialCasoData){
         try {
-            const casoResponse = await fetch(`${apiBaseUrl}casos/${casoId}`, {
+            const casoResponse = await fetch(`${apiBaseUrl_db}casos/${casoId}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(partialCasoData)
@@ -236,7 +187,7 @@ export class Caso {
 
     static async GetAll(){
         try {
-            const casoResponse = await fetch(`${apiBaseUrl}casos/`);
+            const casoResponse = await fetch(`${apiBaseUrl_db}casos/`);
             if (casoResponse.ok) {
                 const casoData = await casoResponse.json();
                 const casos = casoData.map(caso => new CasoModel(caso));

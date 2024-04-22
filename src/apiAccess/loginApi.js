@@ -1,7 +1,9 @@
+import { apiBaseUrl_db } from './apiUrls';
+
 export class Auth{
     static async Login(logData) {
         try {
-            const response = await fetch("http://192.168.78.103:5001/auth/login",
+            const response = await fetch(`${apiBaseUrl_db}auth/login`,
             {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json',},

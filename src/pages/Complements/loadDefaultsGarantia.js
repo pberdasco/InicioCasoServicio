@@ -48,7 +48,9 @@ export const loadDefaults = async (token, setValue, setCasoActual, formatDate) =
             // setValue("fechaFacturaCompra", f);
             setValue("nroFacturaCompra", i.nroFactura);
             setValue("falla", i.fallaCliente);
-            // serie, fotoFactura, fotoProducto, fechaFacturaCompra, nroFacturaCompra, falla
+            setValue("hiddenFotoFactura", i.fotoFacturaLink);
+            setValue("hiddenFotoProducto", i.fotoDestruccionLink);
+            // fotoFactura, fotoProducto, fechaFacturaCompra
             // Set modo
             if (casoData.statusDatosID === 3) modo = "Actualiza" 
             else modo = "Consulta";
@@ -60,6 +62,4 @@ export const loadDefaults = async (token, setValue, setCasoActual, formatDate) =
     } else {
         return `Error ${casoData.status} - ${casoData.message}`;
     }
-
-
 }

@@ -62,12 +62,13 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
                 if (validateAfterFn) {
                     validateAfterStatus = await validateAfterFn(fileData.fileName, fileData.originalFileName);
                 }
-    console.log(isBase64, validateAfterStatus)
+    console.log("ValidateAfterStatus", fileData.fileName, validateAfterStatus)
                 if (validateAfterStatus.status != "Error") { // Validación aprobada
                     clearErrors(name);  // no deberia hacer falta pero igual no soluciona el tema
                     setErrorState("");
-                    storage.setFunc(storage.field, fileData.filename);
-                    if (storage.setState) storage.setState(fileData.filename);
+    console.log("storage: ", storage.field);
+                    storage.setFunc(storage.field, fileData.fileName);
+                    if (storage.setState) storage.setState(fileData.fileName);
                     setSelectedFileName(fileData.originalFileName);
                     setAlert({ status: validateAfterStatus.status, msg: validateAfterStatus.msg })
                 } else { // Error de Validación post upload
@@ -103,7 +104,8 @@ export function StdLoadFile({ name, control, label = "Seleccionar Archivo o toma
             return;
         }
         //TODO: Agregar const MAX_FILE_SIZE = 10485760; // 10 MB .....
-    
+        // if (file.size > MAX_FILE_SIZE) ....
+
         if (file) {
             await handleUpload(file);
         }

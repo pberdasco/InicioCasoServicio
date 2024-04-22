@@ -1,16 +1,16 @@
 import PropTypes from 'prop-types';
 
-//* De React y React-hook-form
+//# De React y React-hook-form
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from 'react-router-dom';
 import { useFormConfig } from "./Complements/useFormConfig";
 
-//* de MaterialUI puro y dayjs
+//# de MaterialUI puro y dayjs
 import { Container, Box, Grid, Divider, ButtonBase } from "@mui/material";
 import dayjs from 'dayjs';
 
-//* de stdComponents
+//# de stdComponents
 import { StdTextInput } from "../stdComponents/StdTextInput";
 import { StdAutoComplete } from "../stdComponents/StdAutoComplete";
 import { StdDatePicker } from "../stdComponents/StdDatePicker";
@@ -22,14 +22,14 @@ import { DondeSerie } from "./Complements/DondeSerie";
 import { FormAgradecimiento } from "./FormAgradecimiento";
 import { FormError} from "./FormError";
 
-//* de Apis y Utils
+//# de Apis y Utils
 import { AI } from '../apiAccess/aiApi';
 import { Caso } from "../apiAccess/casoApi";
 import { Producto } from "../apiAccess/productoApi";
 import { Provincia } from "../apiAccess/provinciaApi";
 import { loadDefaults } from './Complements/loadDefaultsGarantia';
 
-
+//# imagenes        
 import completar from "../assets/Completar.png";
 import secuencia from "../assets/Secuencia.png";
 
@@ -46,7 +46,7 @@ export const FormGarantia = () => {
     const [errorMsg, setErrorMsg] = useState("");        // Indica si estoy en una situacion de error para desplegar pantalla de error
     const [validacionFactura, setValidacionFactura] = useState({})
 
-    // Funcion para validar facturas. 
+    //* Funcion para validar facturas. 
     // Aporta la respuesta a StdLoadFile y 
     // setea el estado validacionFactura para que mas tarde se pueda grabar
     const validateFile = async (serverFileName, fileName) => {
@@ -54,7 +54,19 @@ export const FormGarantia = () => {
         respuesta.serverFileName = serverFileName;
         setValidacionFactura(respuesta);
         return respuesta
-    } 
+    }
+
+    //* React-hook-form: elementos a utilizar del useForm
+    const {
+        handleSubmit,
+        control,
+        register,
+        setValue,
+        setError,
+        clearErrors,
+        watch,
+        formState: { errors },
+    } = useForm();
 
     //* Carga de defaults y picklists + casoActual
     useEffect(() => {
@@ -77,30 +89,23 @@ export const FormGarantia = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
-    //* React-hook-form: elementos a utilizar del useForm
-    const {
-        handleSubmit,
-        control,
-        register,
-        setValue,
-        setError,
-        clearErrors,
-        formState: { errors },
-    } = useForm();
-
     //* Grabación y envio de mail al completar el form
-    const onSubmit = async (data) => {
-        const casoGrabado = await Caso.Update(data, casoActual, setCasoActual, validacionFactura); //TODO: falta en casoGrabado grabar validacionFactura
+    const onSubmit = async (formData) => {
+        const casoGrabado = await Caso.Update(formData, casoActual, setCasoActual, validacionFactura); //TODO: falta en casoGrabado grabar validacionFactura
         if (casoGrabado.status){
             setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
             setSubmit(-1);
         }else{
-            setSubmitData(`Caso ${data.nroCaso} enviado con exito`);
+            setSubmitData(`Caso ${formData.nroCaso} enviado con exito`);
             setSubmit(1);
             // TODO: enviar mail
         }      
     };
 
+    // !DEBUG
+console.log("nroCaso: ", watch("nroCaso"));
+console.log("hidden: ", watch("hiddenFotoFactura"));
+console.log("all: ", watch());
     //* Render formulario
     return (
         (errorMsg) ? (
@@ -140,6 +145,7 @@ export const FormGarantia = () => {
     );
 };
 
+//# Bloques del formulario
 const IdBlock = ({control, errors}) => {
     return (
         <Grid container spacing={3}>
@@ -205,11 +211,12 @@ const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias, cons
 const ProductBlock = ({control, errors, register, setValue, clearErrors, requiredMsg, formWidth, productos, consulta, casoActual, validateFile}) => {
     const [ubicacionSerie, setUbicacionSerie] = useState("");
 
+    // en que campo de form / estado va a guardar la imagen de la factura
     const storageFact = {
         setFunc: setValue,
         field: "hiddenFotoFactura"
     }
-
+    // en que campo de form / estado va a guardar la imagen del producto
     const storageProd = {
         setFunc: setValue,
         field: "hiddenFotoProducto"
@@ -218,17 +225,17 @@ const ProductBlock = ({control, errors, register, setValue, clearErrors, require
     //TODO: ajustar esta funcion con la informacion correcta de las imagenes de ubicacion de nro de serie
     //Eventualmente en la tabla de tipos podria ponerse el nombre del archivo
     function ubicacionSerieSegunProducto(values){
-        if (values.tipoId == 1 || values.tipoId == 2)  // audifonos y microcomponentes
+        if (values.tipoId == 1 || values.tipoId == 2)  //? audifonos y microcomponentes
             setUbicacionSerie("A");
-        else if (values.tipoId == 3 || values.tipoId == 4)  // aspiradoras y ...
+        else if (values.tipoId == 3 || values.tipoId == 4)  //? aspiradoras y ...
             setUbicacionSerie("B");
-        else                                            // otros
+        else                                            //? otros
             setUbicacionSerie("C");
     } 
     
-    // Setear los valores para los defaultFile de los StdLoadFile (no estan en campos => los toma de casoActual)
-    const fotoProducto = (casoActual.items && casoActual.items[0].fotoDestruccionLink !== null) ? casoActual.items[0].fotoDestruccionLink : "";
-    const fotoFactura = (casoActual.items && casoActual.items[0].fotoFactura !== null) ? casoActual.items[0].fotoFactura : "";
+    //* Setear los valores para los defaultFile de los StdLoadFile (no estan en campos => los toma de casoActual)
+    const fotoProductoDefault = (casoActual.items && casoActual.items[0].fotoDestruccionLink !== null) ? casoActual.items[0].fotoDestruccionLink : "";
+    const fotoFacturaDefault = (casoActual.items && casoActual.items[0].fotoFacturaLink !== null) ? casoActual.items[0].fotoFacturaLink : "";
 
     return (
         <StdBlock formWidth={formWidth} title="Producto">         
@@ -237,11 +244,11 @@ const ProductBlock = ({control, errors, register, setValue, clearErrors, require
             <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie ubicacionSerie={ubicacionSerie}/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
             
             <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} required={requiredMsg} validateAfterFn={validateFile} clearErrors={clearErrors}
-                        readOnly={consulta} defaultFile={fotoFactura} helperText='Archivos .png .jpeg .pdf o foto' allowedTypes={[".jpeg", ".png", ".pdf"]}/>
+                        readOnly={consulta} defaultFile={fotoFacturaDefault} helperText='Archivos .png .jpeg .pdf o foto' allowedTypes={[".jpeg", ".png", ".pdf"]}/>
             <input type="hidden" {...register('hiddenFotoFactura')} />
             
             <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} errors={errors} storage={storageProd} required={requiredMsg} clearErrors={clearErrors}
-                         readOnly={consulta} defaultFile={fotoProducto} helperText='Archivos .png .jpeg o tomar foto' allowedTypes={[".jpeg", ".png"]}/>
+                         readOnly={consulta} defaultFile={fotoProductoDefault} helperText='Archivos .png .jpeg o tomar foto' allowedTypes={[".jpeg", ".png"]}/>
             <input type="hidden" {...register('hiddenFotoProducto')} />
 
             <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} readOnly={consulta}/>
@@ -273,6 +280,8 @@ InfoBlock.propTypes = {
     formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla  
     casoActual: PropTypes.object,
 } 
+
+//# Proptypes
 ContactBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 

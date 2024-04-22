@@ -1,9 +1,9 @@
-const apiBaseUrl = 'http://192.168.78.103:5002/';
+import { apiBaseUrl_utils } from './apiUrls';
 
 export class Imagenes {
   static async getProductImage(fotoDestruccionLink) {
     try {
-      const productResponse = await fetch(apiBaseUrl + 'upload/getfile/' + fotoDestruccionLink);
+      const productResponse = await fetch(apiBaseUrl_utils + 'upload/getfile/' + fotoDestruccionLink);
       const productImageData = await productResponse.blob();
       return URL.createObjectURL(productImageData);
     } catch (error) {
@@ -14,7 +14,7 @@ export class Imagenes {
 
   static async getInvoiceImage(fotoFacturaLink) {
     try {
-      const invoiceResponse = await fetch(apiBaseUrl + 'upload/getfile/' + fotoFacturaLink);
+      const invoiceResponse = await fetch(apiBaseUrl_utils + 'upload/getfile/' + fotoFacturaLink);
       if (fotoFacturaLink.endsWith('.pdf')) {
         const invoiceData = await invoiceResponse.arrayBuffer();
         const invoiceBlob = new Blob([invoiceData], { type: 'application/pdf' });

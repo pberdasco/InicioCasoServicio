@@ -1,9 +1,9 @@
-const apiBaseUrl = `http://192.168.78.103:5002/`;
+import { apiBaseUrl_utils } from './apiUrls';
 
 export class Mail {
     static async send(datosMail){
         console.log("Enviando mail: ", datosMail)
-        const response = await fetch(`${apiBaseUrl}mail/send/`, {
+        const response = await fetch(`${apiBaseUrl_utils}mail/send/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

@@ -1,10 +1,10 @@
-const apiBaseUrl = `http://192.168.78.103:5001/`;
+import { apiBaseUrl_db } from './apiUrls';
 
 export class Provincia {
 
     static async GetAll(){
         try {
-            const provinciaResponse = await fetch(`${apiBaseUrl}provincias`);
+            const provinciaResponse = await fetch(`${apiBaseUrl_db}provincias`);
             if (provinciaResponse.ok) {
                 const provinciaData = await provinciaResponse.json();
                 const provincias = provinciaData.map(provincia => {

@@ -1,4 +1,4 @@
-const apiBaseUrl = 'http://192.168.78.103:5002/';
+import { apiBaseUrl_utils } from './apiUrls';
 
 export class AI {
 
@@ -17,7 +17,7 @@ export class AI {
 
   static async checkFactura(archivo, archivoOriginal) {  
     try {
-        const aiResponse = await fetch(apiBaseUrl + 'ai/' + archivo);
+        const aiResponse = await fetch(apiBaseUrl_utils + 'ai/' + archivo);
         if (aiResponse.ok) {
             const ai = await aiResponse.json();
             if (ai.esFactura)
