@@ -92,7 +92,7 @@ export const FormGarantia = () => {
 
     //* Grabación y envio de mail al completar el form
     const onSubmit = async (formData) => {
-        const casoGrabado = await Caso.Update(formData, casoActual, setCasoActual, validacionFactura); //TODO: falta en casoGrabado grabar validacionFactura
+        const casoGrabado = await Caso.Update(formData, casoActual, setCasoActual, validacionFactura); 
         if (casoGrabado.status){
             setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
             setSubmit(-1);

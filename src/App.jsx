@@ -37,6 +37,7 @@ function App() {
                 <Route path= "/service/:token" element={<FormGarantia />}/>
                 <Route path= "/inicio" element={<FormRedirect form={<FormIniciaCaso/>} from="/inicio"/>}/>
                 <Route path= "/login" element={<FormLogin />}/>
+                <Route path= "/" element={<FormRedirect form={<CasosTable/>} from="/monitor"/>}/>
                 <Route path= "/monitor" element={<FormRedirect form={<CasosTable/>} from="/monitor"/>}/>
                 <Route path= "*" element={<InvalidLinkPage/>}/> 
               </Routes>
