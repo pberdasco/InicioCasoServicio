@@ -71,10 +71,8 @@ export class CasoModel {
     * @param {object} casoData - Los campos de caso del formulario.
     * @returns {object} - El cuerpo de la solicitud para la actualización del caso.
     */
-    static buildCasoUpdateBody(casoActual, formData){
-    //! DEBUG
-    console.log("buildBody - casoActual:", casoActual);
-    console.log("formData: ", formData);
+    static buildCasoUpdateBody(casoActual, formData, validacionFactura){
+console.log("validacionFactura: ", validacionFactura)
         const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
         const body = JSON.stringify({    
                 //clienteId: casoActual.cliente.id,  //no deberia modificarso
@@ -91,7 +89,6 @@ export class CasoModel {
                 dirCodigoPostal: formData.codPostal,
                 fallaStdId: 0,  // falla no definida aun
                 tokenLink: casoActual.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
-
                 items: [{
                     //id: se define al grabarlo
                     //casoId: lo pone la api
@@ -107,6 +104,13 @@ export class CasoModel {
                     fallaStdId: 5, // 5= no definida aun
                     fotoDestuccionLink: formData.hiddenFotoProducto,
                     fotoFacturaLink: formData.hiddenFotoFactura,
+                    aiFacturaWarn: (validacionFactura.status == "Warn") ? 1 : 0,
+                    aiFotoWarn:  0, //? Hasta que se agregue en validacionFactura el chequeo de Imagen
+                    aiEsFactura: (validacionFactura.ai.esFactura) ? 1 : 0,
+                    aiFechaFactura: validacionFactura.ai.fecha,
+                    aiTieneItemValido: (validacionFactura.ai.tieneItemElectrodomestico) ? 1 : 0,
+                    aiTextoItemValido: validacionFactura.ai.textoItemElectrodomestico,
+                    aiTextoImagen: "",
                 }]
             });            
         return body;

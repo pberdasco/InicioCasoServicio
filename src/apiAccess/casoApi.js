@@ -121,7 +121,7 @@ export class Caso {
             const casoResponse = await fetch(`${apiBaseUrl_db}casos/all/${casoActual.id}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: CasoModel.buildCasoUpdateBody(casoActual, formData),
+                body: CasoModel.buildCasoUpdateBody(casoActual, formData, validacionFactura),
             });
             if (casoResponse.ok) {
                 const clienteResponse = await fetch(`${apiBaseUrl_db}clientes/${casoActual.cliente.id}`, {
@@ -132,12 +132,9 @@ export class Caso {
                 if (clienteResponse.ok) {
                     const casoResult = await casoResponse.json();
                     casoResult.modo = "Cargado";
-//! DEBUG
-const clienteResult = await clienteResponse.json();
-console.log("Update: ", casoActual, validacionFactura)
-console.log("Grabado: ", casoResult, clienteResult);
                     setCasoActual(casoResult);
                     return "Ok";
+                    //? Ver si tiene sentido agregar datos del cliente en casoActual. En principio para ConsFinal, no.
                     // const clienteResult = await clienteResponse.json();
                     // return {casoResult, clienteResult};
                 } else {

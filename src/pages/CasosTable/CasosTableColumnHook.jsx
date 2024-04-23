@@ -46,11 +46,12 @@ export const useCasosColumn = () => {
             accessorKey: 'statusDatosID', 
             header: 'Datos',
             size: 100,
-            Cell: ({ cell }) => (
+            Cell: ({ row, cell }) => (
                 <Box component="span" sx={() => ({  // se podria tomar theme como parametro y usarlo dentro si fuera util
                     backgroundColor:
                       cell.getValue() == 0 ? 'black'
-                        : cell.getValue() == 1 ? 'green' 
+                        : cell.getValue() == 1 ? 'green'  
+                      //? : cell.getValue() == 2 ? (row.values.items[0].aiFacturaWarn == 1) ? 'orange' : 'blue' 
                           : cell.getValue() == 2 ? 'blue' 
                             : cell.getValue() == 3 ? 'orange' : 'red',
                     borderRadius: '0.25rem',

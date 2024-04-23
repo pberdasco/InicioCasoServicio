@@ -49,9 +49,10 @@ export const FormGarantia = () => {
     //* Funcion para validar facturas. 
     // Aporta la respuesta a StdLoadFile y 
     // setea el estado validacionFactura para que mas tarde se pueda grabar
+    //TODO: cambiar nombre a validateFacturaAI y crear nueva funcion validateImagenAI que agregue datos validacionFactura
     const validateFile = async (serverFileName, fileName) => {
-        const respuesta = AI.checkFactura(serverFileName, fileName);
-        respuesta.serverFileName = serverFileName;
+        const respuesta = await AI.checkFactura(serverFileName, fileName);
+        // respuesta.serverFileName = serverFileName;
         setValidacionFactura(respuesta);
         return respuesta
     }
@@ -64,7 +65,7 @@ export const FormGarantia = () => {
         setValue,
         setError,
         clearErrors,
-        watch,
+        // watch,
         formState: { errors },
     } = useForm();
 
@@ -102,10 +103,6 @@ export const FormGarantia = () => {
         }      
     };
 
-    // !DEBUG
-console.log("nroCaso: ", watch("nroCaso"));
-console.log("hidden: ", watch("hiddenFotoFactura"));
-console.log("all: ", watch());
     //* Render formulario
     return (
         (errorMsg) ? (

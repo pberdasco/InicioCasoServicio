@@ -28,6 +28,7 @@ export const CasosTable = () => {
     const fetchData = async () => {
       try {
         const casosData = await Caso.GetAll();
+console.log("casosData: ", casosData);
         setCasos(casosData);
       } catch (error) {
         console.error("Error al obtener los casos:", error);
