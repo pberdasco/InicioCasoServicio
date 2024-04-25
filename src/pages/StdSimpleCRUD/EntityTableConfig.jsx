@@ -13,8 +13,7 @@ export const useEntityTableConfig = ({ columns, data, handleRowUpdate }) => {
       <Box>
         <Tooltip title="Edit Row">
             <IconButton onClick={() => {
-                console.info('Edit: ', row.original);
-                handleRowUpdate(row.original, "update");
+                handleRowUpdate(row.original, "update"); //en EntityModalHook
             }}>  
                 <EditIcon />
             </IconButton>

@@ -9,7 +9,7 @@ import { SimpleEntity } from '../../apiAccess/simpleEntityApi';  // clase para a
 // para el manejo de la modal de creacion y update
 import { EntityModal } from './EntityModal';
 import { useEntityModal } from './EntityModalHook';
-
+import { useEntityContext } from './EntityContextHook';
 
 // para UI components
 import { Container, Box, Grid } from "@mui/material";
@@ -17,37 +17,34 @@ import { useFormConfig } from "../Complements/useFormConfig";
 import { StdBlock } from "../../stdComponents/StdBlock";
 
 
+
 export const EntityCRUDTable = () => {
     const {formWidth} = useFormConfig();
 
-    // Las entidades simples las modificamos y creamos en una modal
-    const { isModalOpen, modalOpen, modalClose, onSave, handleRowUpdate, updatedInfo, setUpdatedInfo } = useEntityModal();
+    const {isEntityUpdated} = useEntityContext();
+    const { isModalOpen, modalClose, entityModalOnSave, handleRowUpdate, updatedInfo } = useEntityModal();
 
     const columns = useEntityColumn();        // columns ya viene memoizada desde el hook
     const [entities, setEntities] = useState([]);  // array de entidades
-    
-    
-    //const [currentEntity, setCurrentEntity] = useState({});       // ante acciones en la grilla, carga el caso Actual si no alcanza con el row
-    const [entityUpdated, setEntityUpdated] = useState(false);    // si se modifico la fila para que el useEffect ejecute
 
     // Carga del array de entidades. Al montar el componente y cuando se modifica una fila
     useEffect (()=> {
         const fetchData = async () => {
             try {
-                const entitiesData = await SimpleEntity.GetAll();
-                setEntities(entitiesData);
+                const entitiesData = await SimpleEntity.getAll();
+                setEntities(() => entitiesData );
             } catch (error) {
                 console.error("Error al obtener los casos:", error);
             }
         };
         fetchData();
-    },[entityUpdated])
-
+    },[isEntityUpdated])
+    
     // configuración de la tabla usa:
     //     la definicion de columnas, el estado de entidades, la funcion para setear que cambio una entidad,
     //     el estado de la modal y ???? 
     const table = useEntityTableConfig({ columns, data: entities, handleRowUpdate });
-    // const table = useEntityTableConfig({ columns, data: entities, handleRowUpdate, setEntityUpdated, modalOpen, setUpdatedInfo });
+
 
     return (
         <>
@@ -62,7 +59,7 @@ export const EntityCRUDTable = () => {
             
             </Box>
         </Container>
-        <EntityModal isOpen={isModalOpen} onClose={modalClose} onSave={onSave} setEntityUpdated={setEntityUpdated} updatedInfo={updatedInfo} />
+        <EntityModal isOpen={isModalOpen} onClose={modalClose} onSave={entityModalOnSave} updatedInfo={updatedInfo} />
         
         </>
     )

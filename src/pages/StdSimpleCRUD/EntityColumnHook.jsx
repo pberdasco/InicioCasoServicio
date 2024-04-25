@@ -5,6 +5,11 @@ export const useEntityColumn = () => {
     const columns = useMemo(
         () => [
           {
+            accessorKey: 'id', 
+            header: 'Id',
+            size: 100,
+          },
+          {
             accessorKey: 'nombre', 
             header: 'Nombre',
             size: 100,
@@ -15,17 +20,17 @@ export const useEntityColumn = () => {
             size: 100,
           },
           {
-            accessorKey: 'organizacion', 
+            accessorKey: 'organizacion.empresa', 
             header: 'Organizacion',
             size: 100,
           },
           {
-            accessorKey: 'derechos', 
+            accessorKey: 'derechos.tipo', 
             header: 'Permisos',
             size: 100,
           },
           {
-            accessorKey: 'password', 
+            accessorKey: 'clave', 
             header: 'Password',
             size: 100,
           },

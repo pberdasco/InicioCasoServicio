@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SimpleEntity } from "../../apiAccess/simpleEntityApi"
+import { useEntityContext } from "./EntityContextHook";
 
 export const useEntityModal = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,26 +11,28 @@ export const useEntityModal = () => {
     // la modal va a guardar aqui el resultado del update. 
     const [updatedInfo, setUpdatedInfo] = useState({ actionType: "", row: {}, newRow: {} });
 
+    const {setIsEntityUpdated} = useEntityContext();
+
     // Cuando presionan el boton de edit
     const handleRowUpdate = (row, actionType) => {
-        setUpdatedInfo({ actionType: actionType, row: row, newRow: {} });  //TODO: ajustar esto vers si status es algo estandar
+        setUpdatedInfo({ actionType: actionType, row: row, newRow: {} });  
         modalOpen();
     };
 
     // Graba la actualizacion, marca el estado setEntityUpdated y cierra la modal
     // TODO: quizas haya que estudiar donde se desSetea entityUpdated
-    const onSave = (data, setEntityUpdated) => {
-        if (updatedInfo.actionType === "update")
-            SimpleEntity.updateState(data, updatedInfo.row, setEntityUpdated);
-        else if (updatedInfo.actionType === "create")
+    const entityModalOnSave = async(data) => {
+        if (updatedInfo.actionType === "update"){
+            await SimpleEntity.updateState(data, updatedInfo.row, setIsEntityUpdated);
+        } else if (updatedInfo.actionType === "create"){
             console.log(" create: " , data);
             //SimpleEntity.createState(data, setEntityUpdated);
-        else if (updatedInfo.actionType === "delete")
+        } else if (updatedInfo.actionType === "delete"){
             console.log(" delete: " , updatedInfo.row);
             //SimpleEntity.deleteState(updatedInfo.row, setEntityUpdated);
-        
+        }
         modalClose(); // Cerrar el modal después de guardar
     };
 
-    return { isModalOpen, modalOpen, modalClose, onSave, handleRowUpdate, updatedInfo,setUpdatedInfo };
+    return { isModalOpen, modalClose, entityModalOnSave, handleRowUpdate, updatedInfo };
 };

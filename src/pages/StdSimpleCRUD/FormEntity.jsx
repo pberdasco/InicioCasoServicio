@@ -1,21 +1,17 @@
 import PropTypes from 'prop-types';
 
 // De React y React-hook-form
-import { useState } from "react";
+// import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 // import { useGeneralContext } from "../Context/GeneralContextHook";
 import { useFormConfig } from "../Complements/useFormConfig";
-
-// de services
-import { Auth } from "../../apiAccess/loginApi";
 
 // de MaterialUI puro
 import { Container, Box, Divider } from "@mui/material";
 
 // de stdComponents
 import { StdTextInput } from "../../stdComponents/StdTextInput";
-import { StdSnackAlert } from "../../stdComponents/StdSnackAlert";
 import { StdSubmitButton} from "../../stdComponents/StdSubmitButton";
 import { StdCancelButton } from "../../stdComponents/StdCancelButton";
 import { StdAutoComplete } from "../../stdComponents/StdAutoComplete";
@@ -26,10 +22,10 @@ import { StdBlock } from "../../stdComponents/StdBlock";
 
 
 //TODO: casi que podria ir al context junto con productos
-const clientesERP = [{idClienteERP: "PROPIA", empresa: "Empresa de Servicio"},
-                    {idClienteERP: "GARBA", empresa: "Garbarino"},
+const clientesERP = [{idClienteERP: "PROPIA", empresa: "DigitalTech"},
+                    {idClienteERP: "GARBA", empresa: "Garba SA"},
                     {idClienteERP: "MUSI", empresa: "Musimundo"}];
-const derechos = [  {id: "1000", tipo: "Administrador"},
+const derechos = [  {id: "1000", tipo: "Admin"},
                     {id: "0100", tipo: "Interno"},
                     {id: "0010", tipo: "Cliente Retail"}]
 
@@ -53,32 +49,8 @@ export const FormEntity = ({onSave, onClose, updatedInfo}) => {
     setValue("mail", row?.mail || "");
     setValue("password", row?.password || ""); 
 
-    //* Meter row en los defaults
-    const [submit, setSubmit] = useState(0);  // 0=no submit , 1=submit ok , -1=submit error
-    const [submitData, setSubmitData] = useState("")
-    const [success, setSuccess] = useState(false);
-    
     const onSubmit = async (formData) => {
-
-        if (actionType === "create"){
-            const actionResult = await Auth.Register(formData);
-            if (actionResult.status){
-                setSubmit(-1);
-                setSubmitData(`No se pudo crear el usuario. ${actionResult.message}. Intentelo nuevamente o contacte a Servicio técnico`);
-            }else{
-                setSubmit(1);
-                setSubmitData(`Usuario ${formData.user.nombre} enviado con exito`);
-            }
-        }else{
-            const actionResult = await Auth.Update(formData);
-            if (actionResult.status){
-                setSubmit(-1);
-                setSubmitData(`No se pudo modificar el usuario. ${actionResult.message}. Intentelo nuevamente o contacte a Servicio técnico`);
-            }else{
-                setSubmit(1);
-                setSubmitData(`Usuario ${formData.user.nombre} actualizado con exito`);
-            }
-        }
+        onSave(formData, actionType);
     }
 
     return (
@@ -109,30 +81,15 @@ export const FormEntity = ({onSave, onClose, updatedInfo}) => {
                             <StdAutoComplete label="Derechos" name="derechos" control={control} optionsArray={derechos} optionLabel="tipo" valueProp="id" validationRules={{required: requiredMsg}} errors={errors}/>
                         </StdBlock>
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>  
-                        <StdCancelButton label="Cancelar" size="s" onClick={() => setSubmit(0)}/>        
+                        <StdCancelButton label="Cancelar" size="s" onClick={() => onClose()}/>        
                         <StdSubmitButton label="Guardar Usuario" size="s"/>
                     </Box>
                 </form>
-                <AlertBlock submit={submit} setSubmit={setSubmit} submitData={submitData} setSuccess={setSuccess}/>
 
             </Box>
         </Container>
     );
 };
-
-const AlertBlock = ({submit, setSubmit, submitData, setSuccess}) => {
-    return (
-    (submit != 0) && ( 
-        <StdSnackAlert  open={submit != 0} 
-            close= {() => {
-                submit == 1 ? setSuccess(true) : setSuccess(false); 
-                setSubmit(0);
-            }}
-            text= {submitData}
-            severity={submit === 1 ? "success" : "error"}/>
-    ))
-}
-
 
 FormEntity.propTypes = {
     onSave: PropTypes.func.isRequired,
@@ -142,10 +99,5 @@ FormEntity.propTypes = {
         actionType: PropTypes.string,
     }).isRequired,
 };
-AlertBlock.propTypes = {
-    submit: PropTypes.number,
-    setSubmit: PropTypes.func,
-    submitData: PropTypes.string,
-    setSuccess: PropTypes.func
-};
+
 

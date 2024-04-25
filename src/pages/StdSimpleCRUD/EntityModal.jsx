@@ -1,27 +1,22 @@
 import PropTypes from 'prop-types';
 
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Dialog, DialogContent } from '@mui/material';
 import { FormEntity } from './FormEntity';
 
-
-export const EntityModal = ({ isOpen, onClose, onSave, setEntityUpdated, updatedInfo }) => {
-  const handleSaveClick = (data) => {
-    onSave(data, setEntityUpdated);
+// Componente para renderizar la modal donde desplegar el form de la entidad que esta manejando la tabla
+// Se lo usa en EntityTable.jsx (Entity será la entidad especifica Cliente, Producto, etc)
+// En principio solo requiere que se cambie <FormEntity> por el que corresponda (con las mismas props)
+export const EntityModal = ({ isOpen, onClose, onSave, updatedInfo }) => {
+  const handleSaveClick = async (data) => {
+    await onSave(data);
     onClose();
   };
 
-  //TODO: Sacar el boton Cancelar y reemplazarlo por uno en el form.
   return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>Complete el formulario</DialogTitle>
+    <Dialog open={isOpen} onClose={onClose} maxWidth="lg" fullWidth={true}>
       <DialogContent>
         <FormEntity onSave={handleSaveClick} onClose={onClose} updatedInfo={updatedInfo}/> 
       </DialogContent>
-      {/* <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Cancelar
-        </Button>
-      </DialogActions> */}
     </Dialog>
   );
 };
@@ -30,6 +25,5 @@ EntityModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
-  setEntityUpdated: PropTypes.func.isRequired,
   updatedInfo: PropTypes.object.isRequired,
 };

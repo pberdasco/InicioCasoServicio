@@ -1,8 +1,8 @@
 //import { apiBaseUrl_db } from './apiUrls';
 
-const entityDBTable = [{id: 1, nombre: "Pablo", mail:"p.berdasco@gmail.com", derechos: {id:"1000", name: "Admin"}, clave:"clavePablo", empresa: "DigitalTech"}, 
-                        {id: 2, nombre: "Enzo", mail:"enzopuma@gmail.com", derechos: {id:"0100", name: "Interno"}, clave:"claveEnzo", empresa: "DigitalTech"},
-                        {id: 3, nombre: "Garba", mail:"garba@garbamail.com", derechos: {id:"0010", name: "ClienteRetail"}, clave:"claveGarba", empresa: "Garba SA"}
+let entityDBTable = [{id: 1, nombre: "Pablo", mail:"p.berdasco@gmail.com", derechos: {id:"1000", tipo: "Admin"}, clave:"clavePablo", organizacion: {idClienteERP: "PROPIA", empresa: "DigitalTech"}}, 
+                        {id: 2, nombre: "Enzo", mail:"enzopuma@gmail.com", derechos: {id:"0100", tipo: "Interno"}, clave:"claveEnzo", organizacion: {idClienteERP: "PROPIA", empresa: "DigitalTech"}},
+                        {id: 3, nombre: "Garba", mail:"garba@garbamail.com", derechos: {id:"0010", tipo: "Cliente Retail"}, clave:"claveGarba", organizacion: {idClienteERP: "GARBA", empresa: "Garba SA"}}
                     ]
 export class SimpleEntity {
     // Llama a la api para cargar todas las entidades. Se llama desde el useEffect principal de la tabla
@@ -26,34 +26,40 @@ export class SimpleEntity {
         //     return { status: 400, message: "Error al buscar entidades en la base de datos" };
         // }
         // Dado que es para el CRUD modelo:
-
         return entityDBTable;
     }
 
     static async update(entityId, entityPartialData) {
-        //hace el fetch PUT
-        //retorna el objeto actualizado
-        //aqui se simula el retorno tomando y modificando el registro del array
-
-        
-        const entity = entityDBTable.find(entity => entity.id === entityId);
-        if (!entity) {
-            return { status: 404, message: "entidad no encontrada en la base de datos" };
+        const entityIndex = entityDBTable.findIndex(entity => entity.id === entityId);
+        if (entityIndex === -1) {
+            return { status: 404, message: "Entidad no encontrada en la base de datos" };
         }
-        const newEntity = {...entity, ...entityPartialData }
-        const index = entityDBTable.indexOf(entity);
-        entityDBTable[index] = newEntity;
-        return newEntity;
+    
+        // Crear una copia del objeto encontrado en el array
+        const updatedEntity = { ...entityDBTable[entityIndex], ...entityPartialData };
+    
+        // Crear un nuevo array con la entidad actualizada
+        const updatedEntityDBTable = [
+            ...entityDBTable.slice(0, entityIndex),
+            updatedEntity,
+            ...entityDBTable.slice(entityIndex + 1)
+        ];
+    
+        // Actualizar el array original
+        entityDBTable = updatedEntityDBTable; 
+
+        //Tener en cuenta que cuando sea un PUT debe devolver algo con {status:} si hay un error
+        return updatedEntity;
     }
         
     // Al cambiar una fila de la tabla se graba en la base y se setea el estado del registro.
-    // Este estado (entityUpdated) se considera como dependencia en useEffect de la tabla para recargarla completa.
+    // Este estado (isEntityUpdated) se considera como dependencia en useEffect de la tabla para recargarla completa.
     // en alguna version se cambiara el mecanismos para usar tanstack query
-    static async updateState(newPartialData, row, setEntityUpdated) {    
+    static async updateState(newPartialData, row, setIsEntityUpdated) { 
         try{
-            const simpleEntityData = await SimpleEntity.partialUpdate(row.original.id, newPartialData);
+            const simpleEntityData = await SimpleEntity.update(row.id, newPartialData);
             if (!simpleEntityData.status){
-                setEntityUpdated({row})
+                setIsEntityUpdated(true)
             }else{
                 console.log("Error", simpleEntityData.status, simpleEntityData.message )
             }  
