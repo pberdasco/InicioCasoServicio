@@ -2,6 +2,7 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { FormEstadoDatos } from './FormEstadoDatos';
 
+
 export const UsuariosModal = ({ isOpen, onClose, onSave, setCasosUpdated }) => {
   const handleSaveClick = (data) => {
     onSave(data, setCasosUpdated);

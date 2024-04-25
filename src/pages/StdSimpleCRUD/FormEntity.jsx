@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 // import { useGeneralContext } from "../Context/GeneralContextHook";
-import { useFormConfig } from "./Complements/useFormConfig";
+import { useFormConfig } from "../Complements/useFormConfig";
 
 // de services
 import { Auth } from "../../apiAccess/loginApi";
@@ -14,15 +14,16 @@ import { Auth } from "../../apiAccess/loginApi";
 import { Container, Box, Divider } from "@mui/material";
 
 // de stdComponents
-import { StdTextInput } from "../stdComponents/StdTextInput";
-import { StdSnackAlert } from "../stdComponents/StdSnackAlert";
-import { StdSubmitButton} from "../stdComponents/StdSubmitButton";
-import { StdAutoComplete } from "../stdComponents/StdAutoComplete";
-import { StdBlock } from "../stdComponents/StdBlock";
+import { StdTextInput } from "../../stdComponents/StdTextInput";
+import { StdSnackAlert } from "../../stdComponents/StdSnackAlert";
+import { StdSubmitButton} from "../../stdComponents/StdSubmitButton";
+import { StdCancelButton } from "../../stdComponents/StdCancelButton";
+import { StdAutoComplete } from "../../stdComponents/StdAutoComplete";
+import { StdBlock } from "../../stdComponents/StdBlock";
 
 // Herramienta desarrollo / test
-import { DevTool } from "@hookform/devtools"
-import { StdCancelButton } from "../../stdComponents/StdCancelButton";
+// import { DevTool } from "@hookform/devtools"
+
 
 //TODO: casi que podria ir al context junto con productos
 const clientesERP = [{idClienteERP: "PROPIA", empresa: "Empresa de Servicio"},
@@ -33,7 +34,9 @@ const derechos = [  {id: "1000", tipo: "Administrador"},
                     {id: "0010", tipo: "Cliente Retail"}]
 
 // Formulario de usuarios recibe el row de la grilla desde donde se lo llama con Create o Edit
-export const FormUsuarios = (row, actionType) => {
+export const FormEntity = ({onSave, onClose, updatedInfo}) => {
+    const {row, actionType} = updatedInfo
+
     const {formWidth, requiredMsg} = useFormConfig();
 
     const {
@@ -56,6 +59,7 @@ export const FormUsuarios = (row, actionType) => {
     const [success, setSuccess] = useState(false);
     
     const onSubmit = async (formData) => {
+
         if (actionType === "create"){
             const actionResult = await Auth.Register(formData);
             if (actionResult.status){
@@ -81,7 +85,7 @@ export const FormUsuarios = (row, actionType) => {
         <Container maxWidth={false} component="main" disableGutters>
             <Box
                 component="section"
-                id="FormUsuarios"
+                id="FormEntity"
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
@@ -130,9 +134,13 @@ const AlertBlock = ({submit, setSubmit, submitData, setSuccess}) => {
 }
 
 
-FormUsuarios.propTypes = {
-    row: PropTypes.object,
-    actionType: PropTypes.string
+FormEntity.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onClose: PropTypes.func.isRequired,
+    updatedInfo: PropTypes.shape({
+        row: PropTypes.object,
+        actionType: PropTypes.string,
+    }).isRequired,
 };
 AlertBlock.propTypes = {
     submit: PropTypes.number,

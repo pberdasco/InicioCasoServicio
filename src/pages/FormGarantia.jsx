@@ -37,9 +37,9 @@ export const FormGarantia = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
     const {token} = useParams();
 
-    const [submit, setSubmit] = useState(0);             // 0=no submit, 1=submit ok, -1=submit error
-    const [submitData, setSubmitData] = useState("")
-    const [success, setSuccess] = useState(false);
+    const [submit, setSubmit] = useState(0);             // 0=no submit, 1=submit ok, -1=submit error: se setea al intentar grabar. Habilita al AlertBlock
+    const [submitData, setSubmitData] = useState("")     // funciona en tandem con submit, lleva el mensaje a mostrar en el alert
+    const [success, setSuccess] = useState(false);       // Valor diferido de submit, se setea cuando se cierra el AlertBlok para mostrar pantalla de Agradecimiento
     const [casoActual, setCasoActual] = useState({});    // registro del caso actual (lo que trae un get de la api + modo)
     const [productos, setProductos] = useState([]);      // array picklist de productos
     const [provincias, setProvincias] = useState([]);    // array picklist de provincias

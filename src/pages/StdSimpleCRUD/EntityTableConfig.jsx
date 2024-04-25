@@ -2,7 +2,7 @@ import { useMaterialReactTable } from 'material-react-table';
 import { Box, IconButton, Tooltip} from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 
-export const useUsuariosTableConfig = ({ columns, data, setCasosUpdated, datosModalOpen, setStatusUpdateInfo }) => {
+export const useEntityTableConfig = ({ columns, data, handleRowUpdate }) => {
     const table = useMaterialReactTable({
     columns,
     data,
@@ -11,10 +11,10 @@ export const useUsuariosTableConfig = ({ columns, data, setCasosUpdated, datosMo
     enableRowActions: true,
     renderRowActions: ({ row }) => (
       <Box>
-        <Tooltip title="Ver fotos">
+        <Tooltip title="Edit Row">
             <IconButton onClick={() => {
-                console.info('Photos: ', row.original);
-                handleOpenModalFotos(row.original, "edit");
+                console.info('Edit: ', row.original);
+                handleRowUpdate(row.original, "update");
             }}>  
                 <EditIcon />
             </IconButton>

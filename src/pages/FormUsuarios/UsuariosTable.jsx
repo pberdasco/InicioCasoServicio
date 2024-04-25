@@ -10,7 +10,7 @@ import { Container, Box, Grid } from "@mui/material";
 import { useFormConfig } from "../Complements/useFormConfig";
 import { StdBlock } from "../../stdComponents/StdBlock";
 import { ModalEstadoDatos } from './UsuariosModal';
-import { useDatosStatusModal } from './UsuariosModalHook';
+import { useUsuariosModal } from './UsuariosModalHook';
 
 
 export const UsuariosTable = () => {
