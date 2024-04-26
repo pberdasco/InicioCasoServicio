@@ -10,7 +10,7 @@ import 'dayjs/locale/es'
 import { FormGarantia } from "./pages/FormGarantia";
 import { FormIniciaCaso } from './pages/FormIniciaCaso';
 import { FormLogin } from './pages/FormLogin';
-import { ResponsiveAppBar } from './RespoonsiveAppBar/ResponsiveAppBar';
+import { ResponsiveAppBar } from './ResponsiveAppBar/ResponsiveAppBar';
 import { InvalidLinkPage } from './pages/FormInvalidLink';
 
 // Router
@@ -18,8 +18,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { FormRedirect } from './pages/Complements/FormRedirect';
 import { GeneralContextProvider } from './Context/GeneralContext';
 import { SetUser } from './pages/Complements/SetUser';
-import { CasosTable } from './pages/CasosTable/CasosTable';
-import { EntityCRUDTable } from './pages/StdSimpleCRUD/EntityCRUDTable';
+import { CasosMonitor } from './pages/CasosMonitor/CasosMonitor';
+import { UsuariosCRUD } from './pages/UsuariosCRUD/UsuariosCRUD';
 
 
 const theme = createTheme({});
@@ -38,9 +38,9 @@ function App() {
                 <Route path= "/service/:token" element={<FormGarantia />}/>
                 <Route path= "/inicio" element={<FormRedirect form={<FormIniciaCaso/>} from="/inicio"/>}/>
                 <Route path= "/login" element={<FormLogin />}/>
-                <Route path= "/" element={<FormRedirect form={<CasosTable/>} from="/monitor"/>}/>
-                <Route path= "/monitor" element={<FormRedirect form={<CasosTable/>} from="/monitor"/>}/>
-                <Route path= "/test" element={<EntityCRUDTable />}/>
+                <Route path= "/" element={<FormRedirect form={<CasosMonitor/>} from="/monitor"/>}/>
+                <Route path= "/monitor" element={<FormRedirect form={<CasosMonitor/>} from="/monitor"/>}/>
+                <Route path= "/usuarios" element={<UsuariosCRUD />}/>
                 <Route path= "*" element={<InvalidLinkPage/>}/> 
               </Routes>
             </BrowserRouter>

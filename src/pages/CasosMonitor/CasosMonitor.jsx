@@ -9,11 +9,12 @@ import { Caso } from '../../apiAccess/casoApi';
 import { Container, Box, Grid } from "@mui/material";
 import { useFormConfig } from "../Complements/useFormConfig";
 import { StdBlock } from "../../stdComponents/StdBlock";
+import { StdBlockChip } from '../../stdComponents/stdBlockChip';
 import { ModalEstadoDatos } from './ModalEstadoDatos';
 import { useDatosStatusModal } from './DatosStatusHook';
 
 
-export const CasosTable = () => {
+export const CasosMonitor = () => {
   const {formWidth} = useFormConfig();
 
 
@@ -28,7 +29,6 @@ export const CasosTable = () => {
     const fetchData = async () => {
       try {
         const casosData = await Caso.GetAll();
-console.log("casosData: ", casosData);
         setCasos(casosData);
       } catch (error) {
         console.error("Error al obtener los casos:", error);
@@ -44,7 +44,7 @@ console.log("casosData: ", casosData);
       <Container maxWidth={false} component="main" disableGutters>
         <Box paddingX="8px" component="section" id="CasosGrid" justifyContent="center" alignItems="center" paddingY="8px">
         
-          <StdBlock formWidth={formWidth} title="Grilla de casos">
+          <StdBlock formWidth={formWidth} title={<StdBlockChip chip="Monitor de Casos" />}>
             <Grid item xs={12}>
               <MaterialReactTable table={table} />
             </Grid>

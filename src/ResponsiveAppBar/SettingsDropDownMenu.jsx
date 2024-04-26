@@ -18,11 +18,11 @@ export function SettingsDropDownMenu() {
     const navigate = useNavigate();
     
     const {loggedUser, setloggedUser } = useGeneralContext();
-    const [settings, setSettings] = useState([{title: 'Login', route: "/login"}, {title: 'Cuentas', route: '/account'}]);
+    const [settings, setSettings] = useState([{title: 'Login', route: "/login"}, {title: 'Usuarios', route: '/usuarios'}]);
 
     useEffect(() => {
-      if (!loggedUser) {setSettings([{title: 'Login', route: "/login"}, {title: 'Cuentas', route: '/account'}])}
-      else {setSettings([{title: 'Logout', route: "/login"}, {title: 'Cuentas', route: '/account'}])}
+      if (!loggedUser) {setSettings([{title: 'Login', route: "/login"}, {title: 'Usuarios', route: '/usuarios'}])}
+      else {setSettings([{title: 'Logout', route: "/login"}, {title: 'Usuarios', route: '/usuarios'}])}
     },
     [loggedUser]);
 

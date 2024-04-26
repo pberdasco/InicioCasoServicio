@@ -5,7 +5,7 @@ import { useGeneralContext } from "../Context/GeneralContextHook";
 import { useFormConfig } from "./Complements/useFormConfig";
 
 // de MaterialUI puro y dayjs
-import { Container, Box, Divider, Chip } from "@mui/material";
+import { Container, Box, Divider } from "@mui/material";
 import dayjs from 'dayjs';
 
 // de stdComponents
@@ -13,6 +13,7 @@ import { StdTextInput } from "../stdComponents/StdTextInput";
 import { StdSnackAlert } from "../stdComponents/StdSnackAlert";
 import { StdSubmitButton } from "../stdComponents/StdSubmitButton"; 
 import { StdBlock } from "../stdComponents/StdBlock";
+import { StdBlockChip } from "../stdComponents/stdBlockChip";
 
 // de Apis
 import { Caso } from "../apiAccess/casoApi";
@@ -85,7 +86,7 @@ export const FormIniciaCaso = () => {
                         <h1>Creación de Caso</h1>
                     </Box>
                     <Box paddingX="8px">
-                        <StdBlock formWidth={formWidth} title={<Chip label="Contacto" size="small" color="primary" />}>
+                        <StdBlock formWidth={formWidth} title={<StdBlockChip chip="Contacto" />}>
                             
                             <StdTextInput label="Fecha Inicio" name="fInicio" control={control} errors={errors} size='s' helperText="Fecha de inicio del caso" disabled/>
                             <StdTextInput label="Nro de Caso" name="casoNro" control={control} errors={errors} size='s' helperText="Ingrese el numero de caso de CRM" type="number"/>
