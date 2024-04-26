@@ -12,11 +12,10 @@ import { Container, Box, Divider } from "@mui/material";
 
 // de stdComponents
 import { StdTextInput } from "../../stdComponents/StdTextInput";
-import { StdSubmitButton} from "../../stdComponents/StdSubmitButton";
-import { StdCancelButton } from "../../stdComponents/StdCancelButton";
 import { StdAutoComplete } from "../../stdComponents/StdAutoComplete";
 import { StdBlock } from "../../stdComponents/StdBlock";
 import { useEffect } from 'react';
+import { StdCancelSubmitBtns } from '../../stdComponents/StdCancelSubmitBtns';
 
 // Herramienta desarrollo / test
 // import { DevTool } from "@hookform/devtools"
@@ -84,8 +83,7 @@ export const FormEntity = ({onSave, onClose, updatedInfo}) => {
                             <StdAutoComplete label="Derechos" name="derechos" control={control} optionsArray={derechos} optionLabel="tipo" valueProp="id" validationRules={{required: requiredMsg}} errors={errors}/>
                         </StdBlock>
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>  
-                        <StdCancelButton label="Cancelar" size="s" onClick={() => onClose()}/>        
-                        <StdSubmitButton label="Guardar Usuario" size="s"/>
+                        <StdCancelSubmitBtns submitLabel='Guardar Usuario' cancelLabel='Cancelar' onCancel={() => onClose()} size="s" />
                     </Box>
                 </form>
 

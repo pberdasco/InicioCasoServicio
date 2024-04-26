@@ -12,8 +12,15 @@ export const EntityModal = ({ isOpen, onClose, onSave, updatedInfo }) => {
     onClose();
   };
 
+  const handelBackdropClick = (event, reason) => {
+    if (reason === "backdropClick" || reason === "escapeKeyDown")
+      event.stopPropagation();
+    else
+      onClose(event, reason);
+  }
+
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="lg" fullWidth={true}>
+    <Dialog open={isOpen} onClose={handelBackdropClick} maxWidth="lg" fullWidth={true}>
       <DialogContent>
         <FormEntity onSave={handleSaveClick} onClose={onClose} updatedInfo={updatedInfo}/> 
       </DialogContent>
