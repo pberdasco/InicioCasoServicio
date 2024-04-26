@@ -1,8 +1,8 @@
 //import { apiBaseUrl_db } from './apiUrls';
 
-let entityDBTable = [{id: 1, nombre: "Pablo", mail:"p.berdasco@gmail.com", derechos: {id:"1000", tipo: "Admin"}, clave:"clavePablo", organizacion: {idClienteERP: "PROPIA", empresa: "DigitalTech"}}, 
-                        {id: 2, nombre: "Enzo", mail:"enzopuma@gmail.com", derechos: {id:"0100", tipo: "Interno"}, clave:"claveEnzo", organizacion: {idClienteERP: "PROPIA", empresa: "DigitalTech"}},
-                        {id: 3, nombre: "Garba", mail:"garba@garbamail.com", derechos: {id:"0010", tipo: "Cliente Retail"}, clave:"claveGarba", organizacion: {idClienteERP: "GARBA", empresa: "Garba SA"}}
+let entityDBTable = [{id: 1, nombre: "Pablo", mail:"p.berdasco@gmail.com", derechos: {id:"1000", tipo: "Admin"}, password:"clavePablo", organizacion: {idClienteERP: "PROPIA", empresa: "DigitalTech"}}, 
+                        {id: 2, nombre: "Enzo", mail:"enzopuma@gmail.com", derechos: {id:"0100", tipo: "Interno"}, password:"claveEnzo", organizacion: {idClienteERP: "PROPIA", empresa: "DigitalTech"}},
+                        {id: 3, nombre: "Garba", mail:"garba@garbamail.com", derechos: {id:"0010", tipo: "Cliente Retail"}, password:"claveGarba", organizacion: {idClienteERP: "GARBA", empresa: "Garba SA"}}
                     ]
 export class SimpleEntity {
     // Llama a la api para cargar todas las entidades. Se llama desde el useEffect principal de la tabla
@@ -51,20 +51,39 @@ export class SimpleEntity {
         //Tener en cuenta que cuando sea un PUT debe devolver algo con {status:} si hay un error
         return updatedEntity;
     }
-        
-    // Al cambiar una fila de la tabla se graba en la base y se setea el estado del registro.
-    // Este estado (isEntityUpdated) se considera como dependencia en useEffect de la tabla para recargarla completa.
-    // en alguna version se cambiara el mecanismos para usar tanstack query
-    static async updateState(newPartialData, row, setIsEntityUpdated) { 
-        try{
-            const simpleEntityData = await SimpleEntity.update(row.id, newPartialData);
-            if (!simpleEntityData.status){
-                setIsEntityUpdated(true)
-            }else{
-                console.log("Error", simpleEntityData.status, simpleEntityData.message )
-            }  
-        }catch (error){
-            console.log("Error en updateState", error)
+    static async create(entityData) {
+        try {
+            // validar no repetido o dejarlo a las claves unicas si corresponde
+            // Generar un nuevo ID para la entidad
+            const newEntityId = SimpleEntity.generateNewEntityId(); // Supongamos que hay una función para generar un nuevo ID
+    
+            // Crear la nueva entidad con el ID generado y los datos proporcionados
+            const newEntity = { id: newEntityId, ...entityData };
+    
+            // Crear una copia del array de entidades en la base de datos y agregar la entidad
+            const updatedEntityDBTable = [...entityDBTable];
+            updatedEntityDBTable.push(newEntity);
+
+            // Actualizar el array original
+            entityDBTable = updatedEntityDBTable; 
+    
+            // Devolver la copia actualizada del array
+            return updatedEntityDBTable;
+        } catch (error) {
+            // Manejar cualquier error que pueda ocurrir durante la creación de la entidad
+            return { status: 500, message: "Error interno del servidor al crear la entidad" };
         }
     }
+    
+    static generateNewEntityId() {
+        // Encontrar el ID más grande en el array de entidades
+        const maxId = entityDBTable.reduce((max, entity) => {
+            return entity.id > max ? entity.id : max;
+        }, 0);
+    
+        // El nuevo ID será el ID más grande encontrado más uno
+        return maxId + 1;
+    }
+    
+       
 }

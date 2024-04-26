@@ -16,6 +16,7 @@ import { StdSubmitButton} from "../../stdComponents/StdSubmitButton";
 import { StdCancelButton } from "../../stdComponents/StdCancelButton";
 import { StdAutoComplete } from "../../stdComponents/StdAutoComplete";
 import { StdBlock } from "../../stdComponents/StdBlock";
+import { useEffect } from 'react';
 
 // Herramienta desarrollo / test
 // import { DevTool } from "@hookform/devtools"
@@ -43,11 +44,13 @@ export const FormEntity = ({onSave, onClose, updatedInfo}) => {
     } = useForm(); 
 
     //* Cargar valores por defecto
-    setValue("organizacion", row?.organizacion);
-    setValue("derechos", row?.derechos || {id: "0010", tipo: "Cliente Retail"});
-    setValue("nombre", row?.nombre || "");
-    setValue("mail", row?.mail || "");
-    setValue("password", row?.password || ""); 
+    useEffect(() => {
+        setValue("organizacion", row?.organizacion);
+        setValue("derechos", row?.derechos || {id: "0010", tipo: "Cliente Retail"});
+        setValue("nombre", row?.nombre || "");
+        setValue("mail", row?.mail || "");
+        setValue("password", row?.password || ""); 
+    }, [row?.derechos, row?.mail, row?.nombre, row?.organizacion, row?.password, setValue])
 
     const onSubmit = async (formData) => {
         onSave(formData, actionType);
@@ -70,7 +73,7 @@ export const FormEntity = ({onSave, onClose, updatedInfo}) => {
                     <Box paddingX="8px">
                         <StdBlock formWidth={formWidth}>
                             <StdTextInput label="Nombre" name="nombre" control={control} errors={errors} 
-                                            validationRules={{required: requiredMsg}} />
+                                            validationRules={{required: requiredMsg}} focus />
                             <StdTextInput label="e-Mail del Usuario" name="mail" control={control} errors={errors} 
                                             helperText="Ingrese su e-mail para loguearse" 
                                             validationRules={{ required: requiredMsg, pattern: {value: /^[\w.-]+@[\w.-]+\.\w+$/, 

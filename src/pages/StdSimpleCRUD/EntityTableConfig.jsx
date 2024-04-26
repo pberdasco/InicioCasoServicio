@@ -1,6 +1,7 @@
 import { useMaterialReactTable } from 'material-react-table';
-import { Box, IconButton, Tooltip} from "@mui/material";
+import { Box, IconButton, Button, Tooltip} from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
 
 export const useEntityTableConfig = ({ columns, data, handleRowUpdate }) => {
     const table = useMaterialReactTable({
@@ -20,6 +21,16 @@ export const useEntityTableConfig = ({ columns, data, handleRowUpdate }) => {
         </Tooltip>
       </Box>
     ),
+    renderTopToolbarCustomActions: () => (  //podria pasar table como parametro si se necesitara
+        <Button
+          variant="contained"
+          onClick={() => {
+            handleRowUpdate(null, "create");     //en EntityModalHook
+          }}
+        >
+          <ControlPointIcon/> Nuevo
+        </Button>
+      ),
 
     // Mostrar detalles a la izquierda y Acciones a la derecha
     enableColumnActions: true,

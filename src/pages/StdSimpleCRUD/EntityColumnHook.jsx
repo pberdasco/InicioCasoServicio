@@ -30,7 +30,7 @@ export const useEntityColumn = () => {
             size: 100,
           },
           {
-            accessorKey: 'clave', 
+            accessorKey: 'password', 
             header: 'Password',
             size: 100,
           },
