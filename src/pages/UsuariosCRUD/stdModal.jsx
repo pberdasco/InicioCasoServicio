@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import { Dialog, DialogContent } from '@mui/material';
 import { UsuariosForm } from './UsuariosForm';
 
-export const Modal = ({ isOpen, onClose, onSave, updatedInfo }) => {
+export const Modal = ({ isOpen, onClose, modalOnSave, updatedInfo, alert, alertSet }) => {
   const handleSaveClick = async (data) => {
-    await onSave(data);
-    onClose();
+    const result = await modalOnSave(data);
+    if (result === "Ok") onClose();
   };
 
   const handelBackdropClick = (event, reason) => {
@@ -19,7 +19,7 @@ export const Modal = ({ isOpen, onClose, onSave, updatedInfo }) => {
   return (
     <Dialog open={isOpen} onClose={handelBackdropClick} maxWidth="lg" fullWidth={true}>
       <DialogContent>
-        <UsuariosForm onSave={handleSaveClick} onClose={onClose} updatedInfo={updatedInfo}/> 
+        <UsuariosForm onSave={handleSaveClick} onClose={onClose} updatedInfo={updatedInfo} alert={alert} alertSet={alertSet}/> 
       </DialogContent>
     </Dialog>
   );
@@ -28,6 +28,8 @@ export const Modal = ({ isOpen, onClose, onSave, updatedInfo }) => {
 Modal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onSave: PropTypes.func.isRequired,
+  modalOnSave: PropTypes.func.isRequired,
   updatedInfo: PropTypes.object.isRequired,
+  alert: PropTypes.object,
+  alertSet: PropTypes.func.isRequired,
 };

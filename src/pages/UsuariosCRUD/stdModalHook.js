@@ -4,9 +4,9 @@ import { Auth } from "../../apiAccess/authApi";
 export const useModal = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const modalOpen = () => setIsModalOpen(true);
-    const modalClose = () => {setAlert({});
-                              setIsModalOpen(false);}
-    const [alert, setAlert] = useState({error: true, status: 900 , message: "error de base"})
+    const modalClose = () => {  setAlert({});
+                                setIsModalOpen(false);}
+    const [alert, setAlert] = useState({})
     const alertSet = (alertRecord) => {setAlert(alertRecord);}
 
     // Este estado se genera en el hook, table lo usa al llamar a config y en config se pasa a la funcion que abre al modal para pasarle row
@@ -52,15 +52,11 @@ export const useModal = () => {
         }
         
         if (!estado.error){
-            console.log("Not Error - setAlert: ", estado, estado)
-            // podria ir un setAlert con el mensaje de ok, pero complica un poco quizas (en este caso el alert lo tiene que apagar el componente)
-            modalClose(); // Cerrar el modal después de guardar
+            return "Ok";
         }else{
-            console.log("Error - setAlert-before: ", estado, alert, alertSet)
-            // alertSet(estado);
-            //setAlert(() => estado)
-            console.log("Error - setAlert-after: ", estado, alert, alertSet)
-            // aviso del error y no cierra la modal
+            alertSet(estado);
+            //setAlert(() => estado)     // Ver si funciona con setAlert abandonando alertSet. 
+            return "Error";              // Error avisa que no cierre la modal.
         }
     };
 

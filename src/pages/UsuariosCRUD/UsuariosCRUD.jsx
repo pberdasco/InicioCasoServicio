@@ -17,7 +17,7 @@ import { StdBlockChip } from '../../stdComponents/stdBlockChip';
 export const UsuariosCRUD = () => {
     const {formWidth} = useFormConfig();
 
-    const { isModalOpen, modalClose, modalOnSave, handleRowUpdate, updatedInfo,isInfoUpdated, setIsInfoUpdated } = useModal();
+    const { isModalOpen, modalClose, modalOnSave, handleRowUpdate, updatedInfo, isInfoUpdated, setIsInfoUpdated, alert, alertSet } = useModal();
 
     const columns = useColumn();             // columns ya viene memoizada desde el hook
     const [usuarios, setUsuarios] = useState([]);  // array de entidades
@@ -51,7 +51,7 @@ export const UsuariosCRUD = () => {
                     </StdBlock>
                 </Box>
             </Container>
-            <Modal isOpen={isModalOpen} onClose={modalClose} onSave={modalOnSave} updatedInfo={updatedInfo} />
+            <Modal isOpen={isModalOpen} onClose={modalClose} modalOnSave={modalOnSave} updatedInfo={updatedInfo} alert={alert} alertSet={alertSet}/>
         </>
     )
 };
