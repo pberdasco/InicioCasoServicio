@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { SimpleEntity } from "../../apiAccess/simpleEntityApi"
+import { Auth } from "../../apiAccess/authApi";
 
 export const useModal = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const modalOpen = () => setIsModalOpen(true);
-    const modalClose = () => setIsModalOpen(false);
+    const modalClose = () => {setAlert({});
+                              setIsModalOpen(false);}
+    const [alert, setAlert] = useState({error: true, status: 900 , message: "error de base"})
+    const alertSet = (alertRecord) => {setAlert(alertRecord);}
 
     // Este estado se genera en el hook, table lo usa al llamar a config y en config se pasa a la funcion que abre al modal para pasarle row
     // la modal va a guardar aqui el resultado del update. 
@@ -19,35 +22,47 @@ export const useModal = () => {
 
     // Graba la actualizacion, marca el estado setInfooUpdated y cierra la modal
     const modalOnSave = async(data) => {
+        let estado = {};
         try{
             if (updatedInfo.actionType === "update"){   
-                const simpleEntityData = await SimpleEntity.update(updatedInfo.row.id, data);
-                if (!simpleEntityData.status){
-                    setIsInfoUpdated(true)
+                const result = await Auth.Update(data);
+                if (!result.status){
+                    setIsInfoUpdated(true);
+                    estado = {error: false, status: "", message: `Usuario ${data.nombre} acualizado correctamente` };
                 }else{
-                    console.log("Error", simpleEntityData.status, simpleEntityData.message )
+                    console.log("Error", result.status, result.message )
+                    estado = {error: true, status: result.status, message: result.message };
                 }  
             } else if (updatedInfo.actionType === "create"){
-                //TODO: agregar validacion de datos necesarios para el alta
-                const simpleEntityData = await SimpleEntity.create(data);
-                if (!simpleEntityData.status){
-                    setIsInfoUpdated(true)
+                console.log("User Data: ", data);
+                const result = await Auth.Register(data);
+                if (!result.status){
+                    setIsInfoUpdated(true);
+                    estado = {error: false, status: "", message: `Usuario ${data.nombre} creado correctamente` };
                 }else{
-                    console.log("Error", simpleEntityData.status, simpleEntityData.message )
+                    console.log("Error", result.status, result.message )
+                    estado = {error: true, status: result.status, message: result.message };
                 }  
             } else if (updatedInfo.actionType === "delete"){
-                //const simpleEntityData = await SimpleEntity.delete(updatedInfo.row);
-                // if (!simpleEntityData.status){
-                //     setIsEntityUpdated(true)
-                // }else{
-                //     console.log("Error", simpleEntityData.status, simpleEntityData.message )
-                // }  
+                //const result = await Auth.Delete(data.id)
             }
         }catch (error){
             console.log("Error en updateState", error)
+            estado = {error: true, status: error.status, message: error.message };
         }
-        modalClose(); // Cerrar el modal después de guardar
+        
+        if (!estado.error){
+            console.log("Not Error - setAlert: ", estado, estado)
+            // podria ir un setAlert con el mensaje de ok, pero complica un poco quizas (en este caso el alert lo tiene que apagar el componente)
+            modalClose(); // Cerrar el modal después de guardar
+        }else{
+            console.log("Error - setAlert-before: ", estado, alert, alertSet)
+            // alertSet(estado);
+            //setAlert(() => estado)
+            console.log("Error - setAlert-after: ", estado, alert, alertSet)
+            // aviso del error y no cierra la modal
+        }
     };
 
-    return { isModalOpen, modalClose, modalOnSave, handleRowUpdate, updatedInfo, isInfoUpdated, setIsInfoUpdated };
+    return { isModalOpen, modalClose, modalOnSave, handleRowUpdate, updatedInfo, isInfoUpdated, setIsInfoUpdated, alert, alertSet };
 };

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Auth } from "../apiAccess/loginApi";
+import { Auth } from "../apiAccess/authApi";
 import { useGeneralContext } from "../Context/GeneralContextHook";
 import { useFormConfig } from "./Complements/useFormConfig";
 

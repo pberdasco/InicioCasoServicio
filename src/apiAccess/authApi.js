@@ -24,7 +24,13 @@ export class Auth{
         }
     }
 
-    static async Register(regData) {
+    static async Register(data) {
+        const regData = {nombre: data.nombre,
+            mail: data.mail,
+            derechos: data.derechos.derechos,  //derechos.rol sobra
+            idClienteERP: data.organizacion.idClienteERP, // organizacion.empresa sobra
+            password: data.password
+        }
         try {
             const response = await fetch(`${apiBaseUrl_db}auth/register`,
             {
@@ -33,7 +39,7 @@ export class Auth{
                 body: JSON.stringify(regData),
             });
             if (response.ok){
-                const data = await response.json();
+                const data = await response.json(); 
                 return data;
             }else{
                 const status = response.status;
@@ -43,13 +49,20 @@ export class Auth{
             }
         } catch (error) {
             console.log(error);
-            return [];
+            return { status: error.status || 500, message: error.message || "Error al intentar registrar un nuevo usuario" };
         }
     }
 
-    static async Update(updateData) {
+    static async Update(data) {
+        const updateData = {nombre: data.nombre,
+                            mail: data.mail,
+                            derechos: data.derechos.derechos,  //derechos.rol sobra
+                            idClienteERP: data.organizacion.idClienteERP, // organizacion.empresa sobra
+                            //en update no viaja password porque no se modifica por aqui
+        }
+
         try {
-            const response = await fetch(`${apiBaseUrl_db}auth/update`,
+            const response = await fetch(`${apiBaseUrl_db}auth`,
             {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json',},
@@ -66,7 +79,7 @@ export class Auth{
             }
         } catch (error) {
             console.log(error);
-            return [];
+            return { status: error.status || 500, message: error.message || "Error al intentar modificar un usuario" };
         }
     }
 
@@ -89,9 +102,28 @@ export class Auth{
             }
         } catch (error) {
             console.log(error);
-            return [];
+            return { status: error.status || 500, message: error.message || "Error al intentar eliminar un usuario" };
         }
     }
 
+
+    static async getAll() {
+        try{
+            const response = await fetch(`${apiBaseUrl_db}auth`)
+            if (response.ok){
+                const data = await response.json();
+                return data;
+            }else{
+                const status = response.status;
+                const errorData = await response.json(); 
+                const message = errorData?.message || "Error de eliminación"; 
+                return { status, message };
+            }
+        }catch(error){
+            console.log(error);
+            return { status: error.status || 500, message: error.message || "Error al buscar los usuarios" };
+        }
+    }
+    
 }
 

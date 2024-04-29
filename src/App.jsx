@@ -20,6 +20,7 @@ import { GeneralContextProvider } from './Context/GeneralContext';
 import { SetUser } from './pages/Complements/SetUser';
 import { CasosMonitor } from './pages/CasosMonitor/CasosMonitor';
 import { UsuariosCRUD } from './pages/UsuariosCRUD/UsuariosCRUD';
+import { EntityCRUDTable } from './pages/StdSimpleCRUD/EntityCRUDTable'
 
 
 const theme = createTheme({});
@@ -41,6 +42,7 @@ function App() {
                 <Route path= "/" element={<FormRedirect form={<CasosMonitor/>} from="/monitor"/>}/>
                 <Route path= "/monitor" element={<FormRedirect form={<CasosMonitor/>} from="/monitor"/>}/>
                 <Route path= "/usuarios" element={<UsuariosCRUD />}/>
+                <Route path= "/test" element={<EntityCRUDTable />}/>
                 <Route path= "*" element={<InvalidLinkPage/>}/> 
               </Routes>
             </BrowserRouter>

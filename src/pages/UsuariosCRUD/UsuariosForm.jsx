@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 
 // import { useGeneralContext } from "../Context/GeneralContextHook";
 import { useFormConfig } from "../Complements/useFormConfig";
+import { derechos } from './derechos';
 
 // de MaterialUI puro
 import { Container, Box, Divider } from "@mui/material";
@@ -14,6 +15,7 @@ import { Container, Box, Divider } from "@mui/material";
 import { StdTextInput } from "../../stdComponents/StdTextInput";
 import { StdAutoComplete } from "../../stdComponents/StdAutoComplete";
 import { StdBlock } from "../../stdComponents/StdBlock";
+import { StdSnackAlert } from "../../stdComponents/StdSnackAlert";
 import { useEffect } from 'react';
 import { StdCancelSubmitBtns } from '../../stdComponents/StdCancelSubmitBtns';
 
@@ -22,15 +24,12 @@ import { StdCancelSubmitBtns } from '../../stdComponents/StdCancelSubmitBtns';
 
 
 //TODO: casi que podria ir al context junto con productos
-const clientesERP = [{idClienteERP: "PROPIA", empresa: "DigitalTech"},
-                    {idClienteERP: "GARBA", empresa: "Garba SA"},
+const clientesERP = [{idClienteERP: "PROPIA", empresa: "Empresa de servicio"},
+                    {idClienteERP: "GARBA", empresa: "Garbarino"},
                     {idClienteERP: "MUSI", empresa: "Musimundo"}];
-const derechos = [  {id: "1000", tipo: "Admin"},
-                    {id: "0100", tipo: "Interno"},
-                    {id: "0010", tipo: "Cliente Retail"}]
 
 // Formulario de usuarios recibe el row de la grilla desde donde se lo llama con Create o Edit
-export const UsuariosForm = ({onSave, onClose, updatedInfo}) => {
+export const UsuariosForm = ({onSave, onClose, updatedInfo, alert, alertSet}) => {
     const {row, actionType} = updatedInfo
 
     const {formWidth, requiredMsg} = useFormConfig();
@@ -44,12 +43,15 @@ export const UsuariosForm = ({onSave, onClose, updatedInfo}) => {
 
     //* Cargar valores por defecto
     useEffect(() => {
-        setValue("organizacion", row?.organizacion);
-        setValue("derechos", row?.derechos || {id: "0010", tipo: "Cliente Retail"});
+        let organizacionRecord = row ? {idClienteERP: row?.idClienteERP,empresa: row?.empresa} : undefined;
+        let derechosRecord = row ? {derechos: row?.derechos, rol: row?.rol} : undefined;    
+        
+        setValue("organizacion", organizacionRecord);
+        setValue("derechos", derechosRecord);
         setValue("nombre", row?.nombre || "");
         setValue("mail", row?.mail || "");
         setValue("password", row?.password || ""); 
-    }, [row?.derechos, row?.mail, row?.nombre, row?.organizacion, row?.password, setValue])
+    }, [row, row?.derechos, row?.empresa, row?.idClienteERP, row?.mail, row?.nombre, row?.password, row?.rol, setValue])
 
     const onSubmit = async (formData) => {
         onSave(formData, actionType);
@@ -77,16 +79,20 @@ export const UsuariosForm = ({onSave, onClose, updatedInfo}) => {
                                             helperText="Ingrese su e-mail para loguearse" 
                                             validationRules={{ required: requiredMsg, pattern: {value: /^[\w.-]+@[\w.-]+\.\w+$/, 
                                             message: "La dirección de correo electrónico no es válida"} }}/>
-                            <StdTextInput label="Password" name="password" control={control} errors={errors} type="password" 
-                                            validationRules={{required: requiredMsg}} />
+                            {/* Sólo pide password en modo alta... podria autogenerarla y mandarla en el mail para que la cambie*/}
+                            {actionType === "create" && 
+                                <StdTextInput label="Password" name="password" control={control} errors={errors} type="password" validationRules={{required: requiredMsg}} />}
                             <StdAutoComplete label="Organizacion" name="organizacion" control={control} optionsArray={clientesERP} optionLabel="empresa" valueProp="idClienteERP" validationRules={{required: requiredMsg}} errors={errors}/>
-                            <StdAutoComplete label="Derechos" name="derechos" control={control} optionsArray={derechos} optionLabel="tipo" valueProp="id" validationRules={{required: requiredMsg}} errors={errors}/>
+                            <StdAutoComplete label="Derechos" name="derechos" control={control} optionsArray={derechos} optionLabel="rol" valueProp="derechos" validationRules={{required: requiredMsg}} errors={errors}/>
                         </StdBlock>
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>  
                         <StdCancelSubmitBtns submitLabel='Guardar Usuario' cancelLabel='Cancelar' onCancel={() => onClose()} size="s" />
                     </Box>
                 </form>
-
+                {alert?.error && ( <StdSnackAlert  open={true} 
+                                            close= {() => alertSet({})}
+                                            text= {alert.message}
+                                            severity="error"/>)}
             </Box>
         </Container>
     );
@@ -99,6 +105,8 @@ UsuariosForm.propTypes = {
         row: PropTypes.object,
         actionType: PropTypes.string,
     }).isRequired,
+    alert: PropTypes.object,
+    alertSet: PropTypes.func.isRequired,
 };
 
 

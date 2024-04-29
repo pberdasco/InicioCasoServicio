@@ -8,24 +8,6 @@ export class SimpleEntity {
     // Llama a la api para cargar todas las entidades. Se llama desde el useEffect principal de la tabla
     // en futuras versiones se usara con Tanstak query
     static async getAll() {
-        // normalmente ira un:
-        // try {
-        //     const entityResponse = await fetch(`${apiBaseUrl_db}entity/`);
-        //     if (entityResponse.ok) {
-        //         const entityData = await entityResponse.json();
-        //         const entity = entityData.map(ent => new entityModel(ent));   // podria en algunos casos no pasar por crear un objeto en la capa model
-        //         return entity;
-        //     } else if (entityResponse.status === 404) {
-        //         const status = casoResponse.status;
-        //         const errorData = await casoResponse.json(); 
-        //         const message = errorData?.message || "entidades no encontradas en la base de datos";
-        //         return { status, message };
-        //     } 
-        // } catch (error) {
-        //     console.log(error);
-        //     return { status: 400, message: "Error al buscar entidades en la base de datos" };
-        // }
-        // Dado que es para el CRUD modelo:
         return entityDBTable;
     }
 

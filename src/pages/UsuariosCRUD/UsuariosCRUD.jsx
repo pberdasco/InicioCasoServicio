@@ -4,7 +4,7 @@ import { MaterialReactTable} from 'material-react-table';
 // componentes del crud 
 import { useColumn } from './stdColumnHook';            // define las columnas de la tabla
 import { useTableConfig } from './stdTableConfig';      // define la configuracion de la tabla
-import { SimpleEntity } from '../../apiAccess/simpleEntityApi';  // clase para acceso a las api de acceso a la BD
+import { Auth } from '../../apiAccess/authApi';         // clase para acceso a las api de acceso a la BD
 import { Modal } from './stdModal';
 import { useModal } from './stdModalHook';              // estados y funciones para el funcionamiento de la modal
 
@@ -20,15 +20,15 @@ export const UsuariosCRUD = () => {
     const { isModalOpen, modalClose, modalOnSave, handleRowUpdate, updatedInfo,isInfoUpdated, setIsInfoUpdated } = useModal();
 
     const columns = useColumn();             // columns ya viene memoizada desde el hook
-    const [entities, setEntities] = useState([]);  // array de entidades
+    const [usuarios, setUsuarios] = useState([]);  // array de entidades
 
     // Carga del array de entidades. Al montar el componente y cuando se modifica una fila
     useEffect (()=> {
         const fetchData = async () => {
             try {
                 if (isInfoUpdated){
-                    const entitiesData = await SimpleEntity.getAll();
-                    setEntities(() => entitiesData );
+                    const data = await Auth.getAll();
+                    setUsuarios(() => data );
                     setIsInfoUpdated(false)
                 }
             } catch (error) {
@@ -38,7 +38,7 @@ export const UsuariosCRUD = () => {
         fetchData();
     },[isInfoUpdated, setIsInfoUpdated])  
     
-    const table = useTableConfig({ columns, data: entities, handleRowUpdate });
+    const table = useTableConfig({ columns, data: usuarios, handleRowUpdate });
 
     return (
         <>
