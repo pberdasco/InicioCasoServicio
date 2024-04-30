@@ -9,15 +9,14 @@ const SpacedTypography = styled(Typography)({
   marginBottom: "2rem", 
 });
 
-export const InvalidLinkMessage = () => {
+export const FormAviso = () => {
   return (
     <RootDiv>
       <SpacedTypography variant="h5" gutterBottom>
-        ¡Enlace incorrecto!
+        ¡Gracias por utilizar nuestros productos!
       </SpacedTypography>
       <SpacedTypography variant="body1" gutterBottom>
-        El enlace que has proporcionado no es válido. Por favor, verifica y
-        asegúrate de que estás ingresando el enlace correcto.
+        Recorda que podes volver a consultar el estado de tu caso en cualquier momento ingresando al mismo link.
       </SpacedTypography>
       <Typography variant="body2">
         Si necesitas ayuda, por favor contacta con el administrador del sistema o
@@ -26,3 +25,6 @@ export const InvalidLinkMessage = () => {
     </RootDiv>
   );
 };
+
+
+

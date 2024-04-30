@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 //# De React y React-hook-form
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useFormConfig } from "./Complements/useFormConfig";
 
 //# de MaterialUI puro y dayjs
@@ -17,7 +17,6 @@ import { StdDatePicker } from "../stdComponents/StdDatePicker";
 import { StdLoadFile } from "../stdComponents/StdLoadFile"; 
 import { StdSnackAlert } from "../stdComponents/StdSnackAlert";
 import { StdSubmitButton } from "../stdComponents/StdSubmitButton"; 
-import { StdCancelButton } from "../stdComponents/StdCancelButton"; 
 import { StdBlock } from "../stdComponents/StdBlock";
 import { DondeSerie } from "./Complements/DondeSerie";
 import { FormAgradecimiento } from "./FormAgradecimiento";
@@ -34,7 +33,7 @@ import { loadDefaults } from './Complements/loadDefaultsGarantia';
 import completar from "../assets/Completar.png";
 import secuencia from "../assets/Secuencia.png";
 
-export const FormGarantia = () => {
+export const FormRetail = () => {
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
     const {token} = useParams();
 
@@ -46,8 +45,6 @@ export const FormGarantia = () => {
     const [provincias, setProvincias] = useState([]);    // array picklist de provincias
     const [errorMsg, setErrorMsg] = useState("");        // Indica si estoy en una situacion de error para desplegar pantalla de error
     const [validacionFactura, setValidacionFactura] = useState({})
-
-    const navigate = useNavigate();
 
     //* Funcion para validar facturas. 
     // Aporta la respuesta a StdLoadFile y 
@@ -132,7 +129,7 @@ export const FormGarantia = () => {
 
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
                         {casoActual.modo !== "Consulta" && (<StdSubmitButton label="Enviar" size="s"/>)}
-                        {casoActual.modo === "Consulta" && (<StdCancelButton label="Salir" size="s" onClick={()=>{navigate("/service/aviso")}}/>)}
+                        {casoActual.modo === "Consulta" && (<StdSubmitButton label="Salir" size="s" onClick={() => {}}/>)}
                     </Box>
                 </form>
 

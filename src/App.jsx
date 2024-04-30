@@ -12,6 +12,7 @@ import { FormIniciaCaso } from './pages/FormIniciaCaso';
 import { FormLogin } from './pages/FormLogin';
 import { ResponsiveAppBar } from './ResponsiveAppBar/ResponsiveAppBar';
 import { InvalidLinkPage } from './pages/FormInvalidLink';
+import { FormAviso } from './pages/FormAviso';
 
 // Router
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -36,6 +37,7 @@ function App() {
               <SetUser/>
               <ResponsiveAppBar/> {/* dentro del BrowserRouter porque en el componente usa <Link> que necesita un estado del contexto que crea BrowserRouter*/}
               <Routes>
+                <Route path= "/service/aviso" element={<FormAviso />}/>
                 <Route path= "/service/:token" element={<FormGarantia />}/>
                 <Route path= "/inicio" element={<FormRedirect form={<FormIniciaCaso/>} from="/inicio"/>}/>
                 <Route path= "/login" element={<FormLogin />}/>
