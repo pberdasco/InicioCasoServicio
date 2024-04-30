@@ -83,17 +83,15 @@ export class Auth{
         }
     }
 
-    static async Delete(deleteData) {
+    static async Delete(id) {
         try {
-            const response = await fetch(`${apiBaseUrl_db}auth/delete`,
+            const response = await fetch(`${apiBaseUrl_db}auth/${id}`,
             {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json',},
-                body: JSON.stringify(deleteData),
             });
             if (response.ok){
-                const data = await response.json();
-                return data;
+                return id;
             }else{
                 const status = response.status;
                 const errorData = await response.json(); 

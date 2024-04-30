@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Auth } from "../../apiAccess/authApi";
+import { StdConfirm } from "../../stdComponents/StdConfirm";
 
 export const useModal = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,9 +17,30 @@ export const useModal = () => {
 
     // Cuando presionan el boton de edit en una fila o create en la cabecera
     const handleRowUpdate = (row, actionType) => {
-        setUpdatedInfo({ actionType: actionType, row: row });  
-        modalOpen();
+        setUpdatedInfo({ actionType: actionType, row: row }); 
+        if (actionType === "delete"){
+            StdConfirm({ title: "Confirmación de Baja",
+                        message: `Está seguro de querer eliminar el usuario ${row.nombre} - ${row.mail}.`,
+                        yesFunction: onDelete, yesArgs: [row.id]});
+        }else{
+            modalOpen();
+        }
     };
+
+    const onDelete = async (id) => {
+        try{
+            const result = await Auth.Delete(id);
+            if (!result.status){
+                setIsInfoUpdated(true);
+            }else{
+                console.log("Error", result.status, result.message )
+                // Ver como mostrar el mensaje de error
+            }  
+        }catch(error){
+            console.log("Error en delete", error)
+            // ver como mostrar el mensaje de error
+        }
+    }
 
     // Graba la actualizacion, marca el estado setInfooUpdated y cierra la modal
     const modalOnSave = async(data) => {
