@@ -2,6 +2,25 @@ import { useState } from "react";
 import { Auth } from "../../apiAccess/authApi";
 import { StdConfirm } from "../../stdComponents/StdConfirm";
 
+/**
+ * Hook personalizado para gestionar un modal y sus alertas en una aplicación React.
+ * Este hook proporciona funciones para abrir y cerrar el modal, así como para guardar
+ * datos actualizados y manejar eventos relacionados con el modal, como la actualización
+ * de información o la eliminación de elementos.
+ *
+ * @returns {Object} Un objeto que contiene funciones y estados relacionados con el modal.
+ * @property {boolean} isModalOpen - Indica si el modal está abierto o cerrado.
+ * @property {function} modalClose - Función para cerrar el modal.
+ * @property {function} modalOnSave - Función para guardar datos actualizados en el modal.
+ * @property {function} handleRowUpdate - Función para manejar eventos de actualización de filas. En stdTableConfig se hacen las invocaciones. 
+ * @property {Object} updatedInfo - Objeto que almacena información actualizada. La "accion a realizar" y la "fila" de la tabla para compartirlo con el formulario asociado
+ * @property {boolean} isInfoUpdated - Indica si la información ha sido actualizada. Dispara la re-renderizacion de la tabla de UsuariosCRUD
+ * @property {function} setIsInfoUpdated - Función para establecer el estado de información actualizada. Se exporta para que luego del fecth correspondiente se blanquee.
+ * @property {Object} alert - Objeto {error, status, message}. Cuando esta seteado dispara alerta (en general error en grabacion) en el form y no deja cerrar la modal. 
+ * @property {function} alertSet - Función para establecer alertas. Se exporta para que luego de mostrar la alerta se blanquee.
+ * 
+ * En general
+ */
 export const useModal = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const modalOpen = () => setIsModalOpen(true);
@@ -9,9 +28,7 @@ export const useModal = () => {
                                 setIsModalOpen(false);}
     const [alert, setAlert] = useState({})
     const alertSet = (alertRecord) => {setAlert(alertRecord);}
-
-    // Este estado se genera en el hook, table lo usa al llamar a config y en config se pasa a la funcion que abre al modal para pasarle row
-    // la modal va a guardar aqui el resultado del update. 
+ 
     const [updatedInfo, setUpdatedInfo] = useState({ actionType: "", row: {} });
     const [isInfoUpdated, setIsInfoUpdated] = useState(true);
 
@@ -65,8 +82,6 @@ export const useModal = () => {
                     console.log("Error", result.status, result.message )
                     estado = {error: true, status: result.status, message: result.message };
                 }  
-            } else if (updatedInfo.actionType === "delete"){
-                //const result = await Auth.Delete(data.id)
             }
         }catch (error){
             console.log("Error en updateState", error)

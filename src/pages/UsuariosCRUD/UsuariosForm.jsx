@@ -6,7 +6,10 @@ import { useForm } from "react-hook-form";
 
 // import { useGeneralContext } from "../Context/GeneralContextHook";
 import { useFormConfig } from "../Complements/useFormConfig";
+
+// TODO: reemplazar por array llenados desde la BD
 import { derechos } from './derechos';
+import { clientesERP } from './clientesERP';
 
 // de MaterialUI puro
 import { Container, Box, Divider } from "@mui/material";
@@ -21,12 +24,6 @@ import { StdCancelSubmitBtns } from '../../stdComponents/StdCancelSubmitBtns';
 
 // Herramienta desarrollo / test
 // import { DevTool } from "@hookform/devtools"
-
-
-//TODO: casi que podria ir al context junto con productos
-const clientesERP = [{idClienteERP: "PROPIA", empresa: "Empresa de servicio"},
-                    {idClienteERP: "GARBA", empresa: "Garbarino"},
-                    {idClienteERP: "MUSI", empresa: "Musimundo"}];
 
 // Formulario de usuarios recibe el row de la grilla desde donde se lo llama con Create o Edit
 export const UsuariosForm = ({onSave, onClose, updatedInfo, alert, alertSet}) => {

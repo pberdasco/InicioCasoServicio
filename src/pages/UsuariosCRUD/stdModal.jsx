@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 import { Dialog, DialogContent } from '@mui/material';
-import { UsuariosForm } from './UsuariosForm';
+import { UsuariosForm } from './UsuariosForm';  //? junto con <UsuariosForm/> serian los unicos cambios para otros ABMs basicos
 
 export const Modal = ({ isOpen, onClose, modalOnSave, updatedInfo, alert, alertSet }) => {
   const handleSaveClick = async (data) => {
