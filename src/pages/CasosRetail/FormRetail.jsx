@@ -3,68 +3,82 @@ import PropTypes from 'prop-types';
 //# De React y React-hook-form
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useParams } from 'react-router-dom';
-import { useFormConfig } from "./Complements/useFormConfig";
+import { useFormConfig } from "../Complements/useFormConfig";
 
 //# de MaterialUI puro y dayjs
-import { Container, Box, Grid, Divider, ButtonBase } from "@mui/material";
+import { Container, Box, Grid, Divider } from "@mui/material";
 import dayjs from 'dayjs';
 
 //# de stdComponents
-import { StdTextInput } from "../stdComponents/StdTextInput";
-import { StdAutoComplete } from "../stdComponents/StdAutoComplete";
-import { StdDatePicker } from "../stdComponents/StdDatePicker";
-import { StdLoadFile } from "../stdComponents/StdLoadFile"; 
-import { StdSnackAlert } from "../stdComponents/StdSnackAlert";
-import { StdSubmitButton } from "../stdComponents/StdSubmitButton"; 
-import { StdBlock } from "../stdComponents/StdBlock";
-import { DondeSerie } from "./Complements/DondeSerie";
-import { FormAgradecimiento } from "./FormAgradecimiento";
-import { FormError} from "./FormError";
+import { StdTextInput } from "../../stdComponents/StdTextInput";
+import { StdAutoComplete } from "../../stdComponents/StdAutoComplete";
+import { StdSnackAlert } from "../../stdComponents/StdSnackAlert";
+import { StdSubmitButton } from "../../stdComponents/StdSubmitButton"; 
+import { StdBlock } from "../../stdComponents/StdBlock";
+import { FormAgradecimiento } from "../FormAgradecimiento";
+import { FormError} from "../FormError";
 
 //# de Apis y Utils
-import { AI } from '../apiAccess/aiApi';
-import { Caso } from "../apiAccess/casoApi";
-import { Producto } from "../apiAccess/productoApi";
-import { Provincia } from "../apiAccess/provinciaApi";
-import { loadDefaults } from './Complements/loadDefaultsGarantia';
+import { Caso } from "../../apiAccess/casoApi";
+import { Producto } from "../../apiAccess/productoApi";
+import { Provincia } from "../../apiAccess/provinciaApi";
+import { loadDefaultsRetail } from '../Complements/loadDefaultsRetail';
+import { StdTextShow } from '../../stdComponents/StdTextShow';
 
-//# imagenes        
-import completar from "../assets/Completar.png";
-import secuencia from "../assets/Secuencia.png";
+/**
+ * Formulario de casos (alta / modificacion) para Retails
+ * @param {Number} casoId - Numero de caso (id de la tabla casos)
+ * @returns jsx con el formulario de alta o modificacion de un caso
+ */
+export const FormRetail = ({casoId}) => {
 
-export const FormRetail = () => {
+//***************************************************************
+// SOLICITUD REPARACION SMARTLIFE - Visuar Servicio Tecnico
+// Solicitante:  *Razon Social, *Contacto, *mail --> Surge del usuario , Telefono ??
+// Punto de retiro: *Direccion, *Localidad, *Provincia, *CodPostal, *Contacto, Telefono, Rango Horario
+// Para cada producto:
+//                  *Producto, Serie, Nro Factura, Fecha Factura, Descripcion Falla
+//**************************************************************** 
+
+//? Cuando a este componente se lo llame desde una grilla de casos habra que definir si va sobre modal fullpage o 
+
+//? Recibir por parametro solo el numero de caso, null = create
+//? Validar que el caso no este marcado "bloqueado por update" en ese caso setear
+//? Marcar el caso "bloqueado por update" y cargarlo (incluye todos los items)
+//?         Nota: va completo en memoria, (por ahora no: la posibilidad de cargar en tabla temporal para no perder la carga si hay algun problema...)
+//? Render datos de la cabecera
+//? Render tabla de items (opciones crear item, modificar item, borrar item)
+//? Crear y Modificar item sobre modal (son unos 5 datos)
+//?        Crear <Modal/> y <FormItem/>
+//?        El Grabar sobre un item se maneja en este form, guardando el cambio en memoria inmutable
+//? Cuando no esta en modo edicion de item se presentan botones cancelar y grabar caso
+//?        La grabacion de la actualizacion o creacion de un caso: 
+//?            - se maneja en este form y se avisa a la grilla de casos que se actualizo o
+//?            - se recibe una funcion de grabacion desde la grilla?? (esto parece mas complejo y no se si tiene ventaja)
+//? Al grabar: 
+//?             - reemplazar datos de cabecera, borrar los datos de items y cargar los nuevos (nunca van a ser tantos como para que sea critico grabar solo lo modificado) 
+//?             - desmarcar "bloquead por update"
+//? Estudiar: que pasa si el usuario se desconecta y queda bloqueado por update un registro?
+
     const {formWidth, requiredMsg, formatDate} = useFormConfig();
-    const {token} = useParams();
 
     const [submit, setSubmit] = useState(0);             // 0=no submit, 1=submit ok, -1=submit error: se setea al intentar grabar. Habilita al AlertBlock
     const [submitData, setSubmitData] = useState("")     // funciona en tandem con submit, lleva el mensaje a mostrar en el alert
     const [success, setSuccess] = useState(false);       // Valor diferido de submit, se setea cuando se cierra el AlertBlok para mostrar pantalla de Agradecimiento
-    const [casoActual, setCasoActual] = useState({});    // registro del caso actual (lo que trae un get de la api + modo)
+    const [casoActual, setCasoActual] = useState({items: []});    // registro del caso actual (lo que trae un get de la api + modo)
     const [productos, setProductos] = useState([]);      // array picklist de productos
     const [provincias, setProvincias] = useState([]);    // array picklist de provincias
     const [errorMsg, setErrorMsg] = useState("");        // Indica si estoy en una situacion de error para desplegar pantalla de error
-    const [validacionFactura, setValidacionFactura] = useState({})
 
-    //* Funcion para validar facturas. 
-    // Aporta la respuesta a StdLoadFile y 
-    // setea el estado validacionFactura para que mas tarde se pueda grabar
-    //TODO: cambiar nombre a validateFacturaAI y crear nueva funcion validateImagenAI que agregue datos validacionFactura
-    const validateFile = async (serverFileName, fileName) => {
-        const respuesta = await AI.checkFactura(serverFileName, fileName);
-        // respuesta.serverFileName = serverFileName;
-        setValidacionFactura(respuesta);
-        return respuesta
-    }
-
+     
     //* React-hook-form: elementos a utilizar del useForm
     const {
         handleSubmit,
         control,
-        register,
+        // register,
         setValue,
-        setError,
-        clearErrors,
+        // setError,
+        // clearErrors,
         // watch,
         formState: { errors },
     } = useForm();
@@ -73,13 +87,14 @@ export const FormRetail = () => {
     useEffect(() => {
         async function fetchData() {
             try {
+                console.log("useEffect triggered");
                 const productosData = await Producto.GetAll();
                 setProductos(productosData);
                 const provinciasData = await Provincia.GetAll();
                 setProvincias(provinciasData);
                 // Obtener los datos del caso y setear: Los campos del fomulario y setCasoActual
                 // status sera un string "Ok" o "Error ..."
-                const status = await loadDefaults(token, setValue, setCasoActual, formatDate);
+                const status = await loadDefaultsRetail(1, setValue, setCasoActual, formatDate);
                 if (status != "Ok") setErrorMsg(status);
             } catch (error) {
                 console.error("Error al obtener el caso:", error);
@@ -87,19 +102,19 @@ export const FormRetail = () => {
             }
         }
         fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token]);
+    }, [casoId, setValue, formatDate]);
 
+    console.log("FormRetail-casoActual: ", casoActual);
     //* Grabación y envio de mail al completar el form
     const onSubmit = async (formData) => {
-        const casoGrabado = await Caso.Update(formData, casoActual, setCasoActual, validacionFactura); 
+        //! const casoGrabado = await Caso.UpdateRetail(formData, itemsData, casoActual, setCasoActual); 
+        const casoGrabado = {status: 900, message: "Error Forzado"} 
         if (casoGrabado.status){
             setSubmitData(`No se pudo enviar el caso. ${casoGrabado.message}. Intentelo nuevamente o contacte a Servicio técnico`);
             setSubmit(-1);
         }else{
             setSubmitData(`Caso ${formData.nroCaso} enviado con exito`);
             setSubmit(1);
-            // TODO: enviar mail
         }      
     };
 
@@ -117,15 +132,12 @@ export const FormRetail = () => {
             <Box component="section" id="FormService" display="flex" justifyContent="center" alignItems="center" paddingY="8px">
 
                 <form onSubmit={handleSubmit(onSubmit)} style={{width: formWidth}}>
-                    <Box> <h1>Formulario de Reclamo de Garantías</h1> </Box>
+                    <Box> <h1>Formulario Retail</h1> </Box>
                     <Box paddingX="8px">                   
                         <IdBlock control={control} errors={errors}/>  
-                        {(casoActual.modo === "Consulta" || casoActual.modo === "Actualiza")
-                             && (<InfoBlock formWidth={formWidth} casoActual={casoActual}/>)} 
                         <ContactBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} consulta={casoActual.modo == "Consulta"}/>
                         <AddressBlock control={control} errors={errors} requiredMsg={requiredMsg} formWidth={formWidth} provincias={provincias} consulta={casoActual.modo == "Consulta"}/>
-                        <ProductBlock control={control} errors={errors} setError={setError} clearErrors={clearErrors} register={register} setValue={setValue} requiredMsg={requiredMsg} 
-                                      formWidth={formWidth} productos={productos} casoActual={casoActual} validateFile={validateFile} consulta={casoActual.modo == "Consulta"}/>
+                        <ProductBlock formWidth={formWidth} items={casoActual.items}/>
 
                         <Divider textAlign="left" variant="middle" style={{ margin: "10px 0" }}>Acciones</Divider>           
                         {casoActual.modo !== "Consulta" && (<StdSubmitButton label="Enviar" size="s"/>)}
@@ -152,32 +164,6 @@ const IdBlock = ({control, errors}) => {
     )
 }
 
-const InfoBlock = ({formWidth, casoActual}) => {
-    return (
-        <StdBlock formWidth={formWidth} title="Seguimiento del Caso">
-            <Grid item xs={1} >
-                <ButtonBase sx={{ width: 128, height: 128 }}>
-                    {casoActual.modo === "Consulta" && <img alt="imagen" src={secuencia} style={{ width: "64px", height: "64px" }}/>}
-                    {casoActual.modo === "Actualiza" &&  <img alt="imagen" src={completar} style={{ width: "64px", height: "64px" }}/>}
-                </ButtonBase>
-            </Grid>
-            <Grid item xs={11}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
-                    <div style={{ textAlign: 'center', padding: '20px'}}>
-                        {(casoActual.statusDatosID == 3) ? // Datos Faltantes
-                            <div style={{ color: 'red' }}>Oops! Faltan datos o hay datos incorrectos</div> :
-                            (casoActual.statusDatosID == 2) ?  // En revisión
-                                <div style={{ color: 'blue' }}>Estamos revisando la información que ha registrado. Le informaremos por mail cuando hayamos completado la revisión. En todo momento puede ingresar en el mismo link para conocer el avance del caso</div> :
-                                <div style={{ color: 'green' }}>{`Los datos ingresados estaban completos y correctos. Hemos comenzado a procesar el caso el dia ${casoActual.fechaInicio}`}</div>
-                        }
-                        <div>{casoActual.mensaje}</div>
-                        
-                    </div>
-                </div>        
-            </Grid>
-        </StdBlock>
-    )
-}
 
 const ContactBlock = ({ control, errors, requiredMsg, formWidth, consulta}) => {
     return (
@@ -205,52 +191,14 @@ const AddressBlock = ({control, errors, requiredMsg, formWidth, provincias, cons
     )
 }
 
-const ProductBlock = ({control, errors, register, setValue, clearErrors, requiredMsg, formWidth, productos, consulta, casoActual, validateFile}) => {
-    const [ubicacionSerie, setUbicacionSerie] = useState("");
-
-    // en que campo de form / estado va a guardar la imagen de la factura
-    const storageFact = {
-        setFunc: setValue,
-        field: "hiddenFotoFactura"
-    }
-    // en que campo de form / estado va a guardar la imagen del producto
-    const storageProd = {
-        setFunc: setValue,
-        field: "hiddenFotoProducto"
-    }
-
-    //TODO: ajustar esta funcion con la informacion correcta de las imagenes de ubicacion de nro de serie
-    //Eventualmente en la tabla de tipos podria ponerse el nombre del archivo
-    function ubicacionSerieSegunProducto(values){
-        if (values.tipoId == 1 || values.tipoId == 2)  //? audifonos y microcomponentes
-            setUbicacionSerie("A");
-        else if (values.tipoId == 3 || values.tipoId == 4)  //? aspiradoras y ...
-            setUbicacionSerie("B");
-        else                                            //? otros
-            setUbicacionSerie("C");
-    } 
-    
-    //* Setear los valores para los defaultFile de los StdLoadFile (no estan en campos => los toma de casoActual)
-    const fotoProductoDefault = (casoActual.items && casoActual.items[0].fotoDestruccionLink !== null) ? casoActual.items[0].fotoDestruccionLink : "";
-    const fotoFacturaDefault = (casoActual.items && casoActual.items[0].fotoFacturaLink !== null) ? casoActual.items[0].fotoFacturaLink : "";
-
+const ProductBlock = ({ formWidth, items }) => {
     return (
-        <StdBlock formWidth={formWidth} title="Producto">         
-            <StdAutoComplete label="Producto" name="producto" control={control} optionsArray={productos} optionLabel="tipo" optionLabel2="name"
-                             validationRules={{required: requiredMsg}} errors={errors} readOnly={consulta} aditionalOnChange={ubicacionSerieSegunProducto}/>
-            <StdTextInput label="Nro de Serie" name="serie" control={control} errors={errors} toolTip={<DondeSerie ubicacionSerie={ubicacionSerie}/>} readOnly={consulta}/>   {/* TODO: obligar segun producto */}
-            
-            <StdLoadFile label="Imagen de Factura" name="fotoFactura" control={control} errors={errors} storage={storageFact} required={requiredMsg} validateAfterFn={validateFile} clearErrors={clearErrors}
-                        readOnly={consulta} defaultFile={fotoFacturaDefault} helperText='Archivos .png .jpeg .pdf o foto' allowedTypes={[".jpeg", ".png", ".pdf"]}/>
-            <input type="hidden" {...register('hiddenFotoFactura')} />
-            
-            <StdLoadFile label="Imagen del Producto" name="fotoProducto" control={control} errors={errors} storage={storageProd} required={requiredMsg} clearErrors={clearErrors}
-                         readOnly={consulta} defaultFile={fotoProductoDefault} helperText='Archivos .png .jpeg o tomar foto' allowedTypes={[".jpeg", ".png"]}/>
-            <input type="hidden" {...register('hiddenFotoProducto')} />
-
-            <StdDatePicker label="Fecha factura de compra" name="fechaFacturaCompra" control={control} validationRules={{required: requiredMsg}} pickerMaxDate={dayjs()} errors={errors} readOnly={consulta}/>
-            <StdTextInput label="Número factura de compra" name="nroFacturaCompra" control={control} validationRules={{required: requiredMsg}} errors={errors}  helperText="Ingresar en formato FC 0000-00000000" readOnly={consulta}/>
-            <StdTextInput label="Descripción de la Falla" name="falla" control={control} validationRules={{required: requiredMsg}} errors={errors} size='l' toolTip="Indicar de la forma mas detallada posible" readOnly={consulta}/>
+        <StdBlock formWidth={formWidth} title="Productos">         
+            {items.map((x) => (<div key={x.id}>
+                                    <StdTextShow>
+                                        {"---"+x.producto?.idERP.toString()}
+                                    </StdTextShow>
+                                </div>))}
         </StdBlock>
     )
 }
@@ -268,17 +216,14 @@ const AlertBlock = ({submit, setSubmit, submitData, setSuccess}) => {
     ))
 }
 
-
+//# Proptypes
+FormRetail.propTypes = {
+    casoId: PropTypes.string,
+}
 IdBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 
 } 
-InfoBlock.propTypes = {
-    formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla  
-    casoActual: PropTypes.object,
-} 
-
-//# Proptypes
 ContactBlock.propTypes = {
     control: PropTypes.object.isRequired,          // control de react-hook-form 
     errors: PropTypes.object.isRequired,           // errors de react-hook-form 
@@ -295,18 +240,8 @@ AddressBlock.propTypes = {
     consulta: PropTypes.bool
 } 
 ProductBlock.propTypes = {
-    control: PropTypes.object.isRequired,          // control de react-hook-form 
-    errors: PropTypes.object.isRequired,           // errors de react-hook-form 
-    setError: PropTypes.func.isRequired,           // setErrors de react-hook-form (para que lo reciba StdLoadFile)
-    clearErrors: PropTypes.func.isRequired,
-    requiredMsg: PropTypes.string.isRequired,      // mensaje de error estandar para datos obligatorios / requeridos
     formWidth: PropTypes.string.isRequired,        // para determinar el ancho de la pantalla 
-    productos: PropTypes.array.isRequired,
-    register: PropTypes.func.isRequired,          // register de react-hook-form
-    setValue: PropTypes.func.isRequired,          // setValue de react-hook-form
-    consulta: PropTypes.bool,
-    casoActual: PropTypes.object,
-    validateFile: PropTypes.func
+    items: PropTypes.array.isRequired,
 }
 AlertBlock.propTypes = {
     submit: PropTypes.number.isRequired,           

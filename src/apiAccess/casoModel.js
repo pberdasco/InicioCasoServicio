@@ -69,10 +69,10 @@ export class CasoModel {
     * Crea el cuerpo de la solicitud para actualizar un caso en la API (/casos/all)
     * @param {object} casoActual - Datos actuales del caso (para cambios que no vienen en el form por ejemplo el token).
     * @param {object} casoData - Los campos de caso del formulario.
+    * @param {object} validacionFactura - resultados de la funcion de validacion de la imagen de factura con AI
     * @returns {object} - El cuerpo de la solicitud para la actualización del caso.
     */
     static buildCasoUpdateBody(casoActual, formData, validacionFactura){
-console.log("validacionFactura: ", validacionFactura)
         const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
         const body = JSON.stringify({    
                 //clienteId: casoActual.cliente.id,  //no deberia modificarso
@@ -133,6 +133,58 @@ console.log("validacionFactura: ", validacionFactura)
             dirLocalidad: formData.localidad,
             dirCodigoPostal: formData.codPostal,
         })
+        return body;
+    }
+
+    static buildItemsUpdateBody(itemsData){
+        const items = itemsData.map((x) => ({
+            //id: se define al grabarlo
+            //casoId: lo pone la api
+            fila: 1,
+            productoId: x.producto.id,
+            tipoProductoId: x.producto.tipoId,
+            serie: x.serie,
+            fechaFactura: x.fechaFacturaCompra,
+            nroFactura: x.nroFacturaCompra,
+            estadoID: 1,
+            fallaCliente: x.falla,
+            fallaStdId: 5, // 5= no definida aun
+            fotoDestuccionLink: "",    //retail no manda fotos
+            fotoFacturaLink: "",
+            aiFacturaWarn: -1,  // -1 indica que no aplica.
+            aiFotoWarn:  -1,
+            aiEsFactura: -1,
+            aiFechaFactura: null,
+            aiTieneItemValido: -1,
+            aiTextoItemValido: "",
+            aiTextoImagen: "",
+        }))
+        
+
+        return items;  // procesar itemsData para que devuleva lo que necesita buildCasosRetailUpdateBody
+    }
+
+
+    static buildCasoRetailUpdateBody(casoActual, formData, itemsData){
+        const items = CasoModel.buildItemsUpdateBody(itemsData);
+        const fCargaSQLFormat = dayjs().format('YYYY-MM-DD');
+        const body = JSON.stringify({    
+                //clienteId: casoActual.cliente.id,  //no deberia modificarso
+                //fechaAlta: fInicioSQLFormat,   //no deberia modificarse
+                //fechaInicio y fechaFin deben seguir en blanco hasta statusdatosok
+                //idCRM: casoData.casoNro,       //no deberia modificarse
+                fechaCarga: fCargaSQLFormat,
+                statusDatosID: 2, // lo pone en revision 
+                estadoID: 1, // Inicial
+                dirCalle: formData.calle,
+                dirNumero: 0, //TODO: separar los campos
+                dirProvincia: formData.provincia.id,
+                dirLocalidad: formData.localidad,
+                dirCodigoPostal: formData.codPostal,
+                fallaStdId: 0,  // falla no definida aun
+                tokenLink: casoActual.tokenLink,  // lo tiene que mandar para que no lo calcule de nuevo
+                items: items,
+            });            
         return body;
     }
 }

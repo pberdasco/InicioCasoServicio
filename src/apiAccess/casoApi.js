@@ -96,9 +96,47 @@ export class Caso {
         }
     }
 
+    /**
+     * *Funcion para hacer el fetch de caso utilizando el token de acceso
+     * @param {string} token string generado al grabar el caso como segunda clave de acceso a casos de Consumidores finales
+     * @returns {CasoModel | {status: number, message: string}} - Devuelve un objeto `CasoModel` si se encuentra el caso correspondiente al token proporcionado.
+     *          En caso de error o de no encontrar el caso, devuelve un objeto con las propiedades `status` indicando el estado de la respuesta y `message` con un mensaje descriptivo.
+     * 
+     * Tener en cuenta que, a pesar de ser una función asíncrona, no es necesario llamarla con await porque no devuelve una promesa directamente. 
+     */
     static async GetByToken(token){
         try {
             const casoResponse = await fetch(`${apiBaseUrl_db}casos/token/${token}`);
+            if (casoResponse.ok) {
+                const casoData = await casoResponse.json();
+                return new CasoModel(casoData);
+            } else if (casoResponse.status === 404) {
+                const status = casoResponse.status;
+                const errorData = await casoResponse.json(); 
+                const message = errorData?.message || "Caso por token no encontrado";
+                return { status, message };
+            } 
+        } catch (error) {
+            console.log(error);
+            return { status: 400, message: "Error al buscar el caso" };
+        }
+    }
+
+    /***********
+    * * Funcion para buscar un caso por id
+    * @param {string} id - id autonumerico del caso
+    * @returns { status, message} si hubo un error o
+    * @returns { object } = new CasoModel()
+    *                       {id, idCRM, ..., 
+    *                        direccion:{calle, ...}, 
+    *                        cliente:{id, nombre, ...}, 
+    *                        items:[{id, casoId, fila, 
+    *                                producto:{id, tipoId, ...}},
+    *                               ..]}
+    ************/
+    static async GetById(id){
+        try {
+            const casoResponse = await fetch(`${apiBaseUrl_db}casos/${id}`);
             if (casoResponse.ok) {
                 const casoData = await casoResponse.json();
                 return new CasoModel(casoData);
@@ -149,6 +187,31 @@ export class Caso {
                 const message = errorData?.message || "Error en la carga del caso"; 
                 return { status, message };
             }
+        } catch (error) {
+            console.log(error);
+            return { status: 500, message: "Error interno del servidor" };
+        }
+    }
+
+    static async UpdateRetail(formData, itemsData, casoActual, setCasoActual){
+        try {
+            const casoResponse = await fetch(`${apiBaseUrl_db}casos/all/${casoActual.id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: CasoModel.buildCasoRetailUpdateBody(casoActual, formData, itemsData),
+            });
+            //? En retail no estaria grabando nada del cliente.
+            if (casoResponse.ok) {
+                const casoResult = await casoResponse.json();
+                casoResult.modo = "Cargado";
+                setCasoActual(casoResult);
+                return "Ok";
+            } else {
+                const status = casoResponse.status;
+                const errorData = await casoResponse.json(); 
+                const message = errorData?.message || "Error en la carga del caso"; 
+                return { status, message };
+            }        
         } catch (error) {
             console.log(error);
             return { status: 500, message: "Error interno del servidor" };
