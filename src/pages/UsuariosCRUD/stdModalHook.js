@@ -73,7 +73,6 @@ export const useModal = () => {
                     estado = {error: true, status: result.status, message: result.message };
                 }  
             } else if (updatedInfo.actionType === "create"){
-                console.log("User Data: ", data);
                 const result = await Auth.Register(data);
                 if (!result.status){
                     setIsInfoUpdated(true);

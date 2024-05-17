@@ -15,8 +15,8 @@ import { StdAutoComplete } from "../../stdComponents/StdAutoComplete";
 import { StdSnackAlert } from "../../stdComponents/StdSnackAlert";
 import { StdSubmitButton } from "../../stdComponents/StdSubmitButton"; 
 import { StdBlock } from "../../stdComponents/StdBlock";
-import { FormAgradecimiento } from "../FormAgradecimiento";
-import { FormError} from "../FormError";
+import { FormAgradecimiento } from "../MessagesForms/FormAgradecimiento";
+import { FormError} from "../MessagesForms/FormError";
 
 //# de Apis y Utils
 import { Caso } from "../../apiAccess/casoApi";

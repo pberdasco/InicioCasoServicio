@@ -24,12 +24,24 @@ export class Auth{
         }
     }
 
+    /**
+     * Creación de un Usuario en la BD
+     * @param {object} data - campos del formulario a grabar
+     * @returns {Promise<object | {status: number, message:string}>} - object: datos del usuario actualizado
+     */
     static async Register(data) {
-        const regData = {nombre: data.nombre,
+        //TODO: encript password here
+        const regData = {
+            nombre: data.nombre, 
             mail: data.mail,
-            derechos: data.derechos.derechos,  //derechos.rol sobra
-            idClienteERP: data.organizacion.idClienteERP, // organizacion.empresa sobra
-            password: data.password
+            derechos: data.derechos.derechos,             // Solo la FK. La descripcion (rol) no se envia
+            idClienteERP: data.organizacion.idClienteERP, // Solo la FK. La descripcion (empresa) no se envia
+            password: data.password, 
+            dirCalle: data.calle,
+            dirProvincia: data.provincia?.id || 1,              // Solo la FK. La descripcion (name) no se envia
+            dirLocalidad: data.localidad, 
+            dirCodigoPostal: data.codPostal,
+            horario: data.rangoHorario?.id || 1,                // Solo la FK. La descripcion (horario) no se envia
         }
         try {
             const response = await fetch(`${apiBaseUrl_db}auth/register`,
@@ -53,12 +65,23 @@ export class Auth{
         }
     }
 
+        /**
+     * Update de un Usuario en la BD
+     * @param {object} data - campos del formulario a grabar
+     * @returns {Promise<object | {status: number, message:string}>} - object: datos del usuario actualizado
+     */
     static async Update(data) {
-        const updateData = {nombre: data.nombre,
-                            mail: data.mail,
-                            derechos: data.derechos.derechos,  //derechos.rol sobra
-                            idClienteERP: data.organizacion.idClienteERP, // organizacion.empresa sobra
-                            //en update no viaja password porque no se modifica por aqui
+        const updateData = {
+            nombre: data.nombre,
+            mail: data.mail,
+            derechos: data.derechos.derechos,             // Solo la FK. La descripcion (rol) no se envia
+            idClienteERP: data.organizacion.idClienteERP, // Solo la FK. La descripcion (empresa) no se envia
+            //en update no viaja password porque no se modifica por aqui
+            dirCalle: data.calle,
+            dirProvincia: data.provincia?.id || 1,              // Solo la FK. La descripcion (name) no se envia
+            dirLocalidad: data.localidad,
+            dirCodigoPostal: data.codPostal,
+            horario: data.rangoHorario?.id || 1,                // Solo la FK. La descripcion (horario) no se envia
         }
 
         try {

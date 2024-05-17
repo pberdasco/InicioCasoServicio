@@ -11,8 +11,8 @@ import { FormGarantia } from "./pages/FormGarantia";
 import { FormIniciaCaso } from './pages/FormIniciaCaso';
 import { FormLogin } from './pages/FormLogin';
 import { ResponsiveAppBar } from './ResponsiveAppBar/ResponsiveAppBar';
-import { InvalidLinkPage } from './pages/FormInvalidLink';
-import { FormAviso } from './pages/FormAviso';
+import { FormInvalidLink } from './pages/MessagesForms/FormInvalidLink';
+import { FormAviso } from './pages/MessagesForms/FormAviso';
 
 // Router
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -38,6 +38,7 @@ function App() {
               <SetUser/>
               <ResponsiveAppBar/> {/* dentro del BrowserRouter porque en el componente usa <Link> que necesita un estado del contexto que crea BrowserRouter*/}
               <Routes>
+                {/* //TODO: Agregar lazzy loading https://www.youtube.com/watch?v=JU6sl_yyZqs*/}
                 <Route path= "/service/aviso" element={<FormAviso />}/>
                 <Route path= "/service/:token" element={<FormGarantia />}/>
                 <Route path= "/inicio" element={<FormRedirect form={<FormIniciaCaso/>} from="/inicio"/>}/>
@@ -47,7 +48,7 @@ function App() {
                 <Route path= "/usuarios" element={<UsuariosCRUD />}/>
                 <Route path= "/test" element={<EntityCRUDTable />}/>
                 <Route path= "/retail" element={<FormRetail />}/>
-                <Route path= "*" element={<InvalidLinkPage/>}/> 
+                <Route path= "*" element={<FormInvalidLink/>}/> 
               </Routes>
             </BrowserRouter>
         </ThemeProvider>

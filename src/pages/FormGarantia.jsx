@@ -20,8 +20,8 @@ import { StdSubmitButton } from "../stdComponents/StdSubmitButton";
 import { StdCancelButton } from "../stdComponents/StdCancelButton"; 
 import { StdBlock } from "../stdComponents/StdBlock";
 import { DondeSerie } from "./Complements/DondeSerie";
-import { FormAgradecimiento } from "./FormAgradecimiento";
-import { FormError} from "./FormError";
+import { FormAgradecimiento } from "./MessagesForms/FormAgradecimiento";
+import { FormError} from "./MessagesForms/FormError";
 
 //# de Apis y Utils
 import { AI } from '../apiAccess/aiApi';

@@ -12,12 +12,23 @@ import { StdBlock } from "../../stdComponents/StdBlock";
 import { StdBlockChip } from '../../stdComponents/stdBlockChip';
 import { ModalEstadoDatos } from './ModalEstadoDatos';
 import { useDatosStatusModal } from './DatosStatusHook';
+import { useGeneralContext } from '../../Context/GeneralContextHook';
+import { isAuthorized } from '../Complements/IsAuthorized';
+import { FormUnauthorized } from '../MessagesForms/FormUnauthorized';
 
 
 export const CasosMonitor = () => {
+  const {loggedUser} = useGeneralContext();
+
+  if (!isAuthorized(loggedUser, "Monitor")) {
+    return (<FormUnauthorized user={loggedUser.user?.mail} module="Monitor"/>);
+  }else{
+    return (<CasosMonitorContent/>);
+  }
+}
+
+const CasosMonitorContent = () => {
   const {formWidth} = useFormConfig();
-
-
   const { isDatosModalOpen, datosModalOpen, datosModalClose, onSave, setStatusUpdateInfo } = useDatosStatusModal();
 
   const columns = useCasosColumn();        // columns ya viene memoizada desde el hook

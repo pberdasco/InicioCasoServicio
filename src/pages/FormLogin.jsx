@@ -18,6 +18,13 @@ import { StdBlock } from "../stdComponents/StdBlock";
 // Herramienta desarrollo / test
 import { DevTool } from "@hookform/devtools"
 
+/**
+ * Intenta loguear al usuario con los datos del formulario. 
+ * Si el logueo es correcto guarda el token y el usuario en localStorage
+ * Si no, borra localStorage
+ * @param {{mail: string, password: string}} dataLogin - campos del formulario 
+ * @returns {Promise<object | {status: number, message: string}}
+ */
 async function tryToLogin(dataLogin) 
 {
     try {
@@ -55,6 +62,11 @@ export const FormLogin = () => {
     const [submit, setSubmit] = useState(0);  // 0=no submit , 1=submit ok , -1=submit error
     const [submitData, setSubmitData] = useState("")
     
+    /**
+     * Intenta loguear al usuario
+     * Si es correcto vuelve al formulario origen
+     * @param {{mail: string, password: string}} data - el objeto con los datos del formulario 
+     */
     const onSubmit = async (data) => {
         const logged = await tryToLogin(data);
         
@@ -62,11 +74,9 @@ export const FormLogin = () => {
         if (logged?.status){
             setloggedUser(null);
             setSubmit(-1);
-            console.log(`<FormLogin> Error de logueo: Status: ${logged.status}  Message: ${logged.message}`)
         }else{
             setloggedUser(logged);
             setSubmit(1);
-            console.log('<FormLogin> Login satisfactorio: ', logged.user);
         }      
         navigate(location.state?.from.from || "/"); // Vuelve al form desde el que se redirecciono. (Ver que hacer si no se logea) 
     }

@@ -13,8 +13,21 @@ import { Container, Box, Grid } from "@mui/material";
 import { useFormConfig } from "../Complements/useFormConfig";
 import { StdBlock } from "../../stdComponents/StdBlock";
 import { StdBlockChip } from '../../stdComponents/stdBlockChip';
+import { FormUnauthorized } from '../MessagesForms/FormUnauthorized';
+import { isAuthorized } from '../Complements/IsAuthorized';
+import { useGeneralContext } from '../../Context/GeneralContextHook';
 
 export const UsuariosCRUD = () => {
+    const {loggedUser} = useGeneralContext();
+
+    if (!isAuthorized(loggedUser, "Users")) {
+        return (<FormUnauthorized user={loggedUser.user?.mail} module="Monitor"/>);
+    }else{
+        return (<UsuariosCRUDContent/>);
+    }
+}
+
+export const UsuariosCRUDContent = () => {
     const {formWidth} = useFormConfig();
 
     const { isModalOpen, modalClose, modalOnSave, handleRowUpdate, updatedInfo, isInfoUpdated, setIsInfoUpdated, alert, alertSet } = useModal();
